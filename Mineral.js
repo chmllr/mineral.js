@@ -40,10 +40,9 @@ var cons = function(args) {
 	return { "head": element, "tail": list };
 }
 
-var cond = function(pairs) {
-	for (var pair in pairs)
-		if(eval(pair.1).value == true)
-			return eval(pair.2);
+var branch = function(args) {
+	var guard = args[0], thenAction = args[1], elseAction = args[2];
+	return eval(eval(guard) ? thenAction : elseAction);
 }
 
 function eval(x) {
