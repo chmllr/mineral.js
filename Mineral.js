@@ -12,10 +12,7 @@ function _createAtom(x) {
 }
 
 function _createList(head, tail) {
-	return {
-		"head": head,
-		"tail": tail
-	};
+	return { "head": head, "tail": tail };
 }
 
 var quote = function(x) {
@@ -28,8 +25,7 @@ var atom = function(x) {
 
 var eq = function(args) {
 	var a = args[0], b = args[1];
-	return _createAtom(	(a.atom && a.atom == b.atom) || 
-						(a.list && b.list && !a.head && !b.head));
+	return _createAtom((a.atom && a.atom == b.atom) || (a.list && b.list && !a.head && !b.head));
 }
 
 var head = function(list) {
