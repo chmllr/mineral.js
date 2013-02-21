@@ -13,6 +13,13 @@ function _createAtom(x) {
 	};
 }
 
+function _createList(head, tail) {
+	return {
+		"head": head,
+		"tail": tail
+	};
+}
+
 var quote = function(x) {
 	return x;
 };
@@ -37,23 +44,36 @@ var tail = function(list) {
 
 var cons = function(args) {
 	var element = args[0], list = args[1];
-	return { "head": element, "tail": list };
+	return _createList(element, list);
 }
 
 var branch = function(args) {
 	var guard = args[0], thenAction = args[1], elseAction = args[2];
-	return eval(eval(guard) ? thenAction : elseAction);
+	return evaluate(evaluate(guard) ? thenAction : elseAction);
 }
 
-function eval(x) {
+var apply = function(f, args) {
+	return f(args);
+}
+
+function evaluate(x) {
 	if (x.atom)
 		return x.value;
 	else {
-		var f = x.head;
+		var f = evaluate(x.head);
 		var args = _flattenList([], x.tail)
-		if(f != cond && f != quote)
+		if(f != branch && f != quote)
 			for(var i = 0; i < args.length; i++)
-				args[i] = eval(args[i]);
-		return f(args);
+				args[i] = evaluate(args[i]);
+		return apply(f, args);
 	}
+}
+
+function parse(code) {
+	if(code.charAt(0) != "(")
+		return _createAtom(code);
+	else {
+		var elements = code.substring(1, code.length-1).split(" ", 2);
+		return _createList(elements[0], parse(elements[1]));
+		};
 }
