@@ -1,16 +1,14 @@
 "use strict";
 
+var NIL = [];
+
 function _flattenList(memo, list) {
-	if (!list.head) return memo;
 	memo.push(list.head);
-	return flattenList(memo, list.tail);
+	return list.tail == NIL ? memo : _flattenList(memo, list.tail);
 }
 
 function _createAtom(x) {
-	return {
-		"atom": true,
-		"value": x
-	};
+	return { "atom": x };
 }
 
 function _createList(head, tail) {
@@ -30,7 +28,7 @@ var atom = function(x) {
 
 var eq = function(args) {
 	var a = args[0], b = args[1];
-	return _createAtom(	(a.atom && b.atom && a.value == b.value) || 
+	return _createAtom(	(a.atom && a.atom == b.atom) || 
 						(a.list && b.list && !a.head && !b.head));
 }
 
@@ -58,7 +56,7 @@ var apply = function(f, args) {
 
 function evaluate(x) {
 	if (x.atom)
-		return x.value;
+		return eval(x.atom);
 	else {
 		var f = evaluate(x.head);
 		var args = _flattenList([], x.tail)
@@ -73,7 +71,10 @@ function parse(code) {
 	if(code.charAt(0) != "(")
 		return _createAtom(code);
 	else {
-		var elements = code.substring(1, code.length-1).split(" ", 2);
-		return _createList(elements[0], parse(elements[1]));
+			var elements = code.substring(1, code.length-1).split(" ");
+			var head = parse(elements.shift());
+			var tail = parse(elements.join(" "));
+			var tailList = tail.atom ? _createList(tail, NIL) : tail;
+			return _createList(head, tailList);
 		};
 }
