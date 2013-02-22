@@ -1,8 +1,8 @@
 # README
 
-Mineral.js is yet another Lisp on JS started as an exercise after reading the "Roots of Lisp" paper by Paul Graham.
+Mineral.js is a yet another Lisp on JS started as an exercise after reading the "Roots of Lisp" paper by Paul Graham.
 
-## Differences to Lisp
+## Differences with Lisp
 
 	- `true` is `t`
 	- `false` is  `()`
