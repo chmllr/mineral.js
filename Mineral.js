@@ -15,6 +15,11 @@ function _createList(head, tail) {
 	return { "head": head, "tail": tail };
 }
 
+function _createListRec(list) {
+	if (list.length == 1) return _createList(list[0], NIL);
+	return { "head": list.shift(), "tail": _createListRec(list) };
+}
+
 var quote = function(x) {
 	return x;
 };
@@ -77,21 +82,28 @@ function _decapitateComplex(code, brackets, pos) {
 	return _decapitateComplex(code, brackets, pos+1);
 }
 
-function _decapitate(code) {
-	if(code.charAt(0) == "(")
-		return _decapitateComplex(code, 0, 0);
-	else
-		return _splitAtPosition(code, code.indexOf(" "));
+function _tokenize(code) {
+	var pair = code.charAt(0) == "("
+					? _decapitateComplex(code, 0, 0)
+					: _splitAtPosition(code, code.indexOf(" "));
+	var intermediate = _tokenize(pair[1]);
+	intermediate.unshift(pair[0]);
+	return intermediate;
 }
 
 function parse(code) {
 	if(code.charAt(0) != "(")
 		return _createAtom(code);
 	else {
-			var elements = _decapitate(code.substring(1, code.length-1));
-			var head = parse(elements[0]);
-			var tail = parse(elements[1]);
-			var tailList = tail.atom ? _createList(tail, NIL) : tail;
-			return _createList(head, tailList);
+			var tokens = _tokenize(code.substring(1, code.length-1));
+			var head = tokens.shift();
+			var tail = tokens.forEach(function(x){ return parse(x); });
+			return _createListRec(head, tailList);
 		};
+}
+
+function stringify(code) {
+	if(code.atom) return code.atom;
+	if(code.tail == NIL) return stringify(code.head);
+	return "(" + stringify(code.head) + " " + stringify(code.tail) + ")";
 }
