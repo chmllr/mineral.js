@@ -86,6 +86,8 @@ function _tokenize(code) {
 	var pair = code.charAt(0) == "("
 					? _decapitateComplex(code, 0, 0)
 					: _splitAtPosition(code, code.indexOf(" "));
+	if (pair[0] == "") return [pair[1]];
+	if (pair[1] == "") return [pair[0]];
 	var intermediate = _tokenize(pair[1]);
 	intermediate.unshift(pair[0]);
 	return intermediate;
