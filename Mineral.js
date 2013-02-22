@@ -71,18 +71,17 @@ function _splitAtPosition(text, pos) {
 	return [text.substring(0, pos), text.substring(pos+1, text.length)];
 }
 
-function _decapitateComplex(code, brackets, pos) {
+function _decapitate(code, brackets, pos) {
 	if(brackets == 0 && pos > 0) return _splitAtPosition(code, pos);
 	var c = code.charAt(pos);
 	if(c == "(") brackets++;
 	else if(c == ")") brackets--;
-	return _decapitateComplex(code, brackets, pos+1);
+	return _decapitate(code, brackets, pos+1);
 }
 
 function _tokenize(code) {
-	var pair = code.charAt(0) == "("
-					? _decapitateComplex(code, 0, 0)
-					: _splitAtPosition(code, code.indexOf(" "));
+	var pair = code.charAt(0) == "(" ? _decapitate(code, 0, 0)
+									 : _splitAtPosition(code, code.indexOf(" "));
 	if (pair[0] == "") return [pair[1]];
 	if (pair[1] == "") return [pair[0]];
 	var intermediate = _tokenize(pair[1]);
@@ -111,20 +110,13 @@ function stringify(code) {
 }
 
 function runTests() {
-
 	var counter = 0;
-
 	var assertEqual = function(input, output) {
-		if(output == stringify(evaluate(parse(input)))) {
+		if(output == stringify(evaluate(parse(input))))
 			console.log("Test " + (counter++) + " successful: execution of '"
 						+ input + "' produces '" + output + "'");
-			return true;
-		}
-		else {
-			console.error("Test failed: execution of '" 
-						+ input + "' doesn't produce '" + output + "'");
-			return false;
-		}
+		else console.error("Test failed: execution of '"
+							+ input + "' doesn't produce '" + output + "'");
 	}
 
 	assertEqual("(quote a)", "a");
