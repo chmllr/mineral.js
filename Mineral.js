@@ -94,18 +94,21 @@ function _tokenize(code) {
 }
 
 function parse(code) {
-	if(code.charAt(0) != "(")
+	if(code == "()" || code.charAt(0) != "(")
 		return _createAtom(code);
 	else {
 			var tokens = _tokenize(code.substring(1, code.length-1));
-			var head = tokens.shift();
-			var tail = tokens.forEach(function(x){ return parse(x); });
-			return _createListRec(head, tailList);
+			for(var i in tokens) tokens[i] = parse(tokens[i]);
+			return _createListRec(tokens);
 		};
 }
 
 function stringify(code) {
 	if(code.atom) return code.atom;
-	if(code.tail == NIL) return stringify(code.head);
-	return "(" + stringify(code.head) + " " + stringify(code.tail) + ")";
+	if(code.tail == NIL) return "(" + stringify(code.head) + ")";
+	var flattened = _flattenList([], code);
+	var output = "";
+	for(var i in flattened) output += stringify(flattened[i]) + " ";
+	output = output.substring(0, output.length-1);
+	return "(" + output + ")";
 }
