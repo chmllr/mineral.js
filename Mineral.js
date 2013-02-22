@@ -63,13 +63,34 @@ function evaluate(x) {
 	}
 }
 
+function _splitAtPosition(text, pos) {
+	return new Array(text.substring(0, pos), text.substring(pos+1, text.length));
+}
+
+function _decapitateComplex(code, brackets, pos) {
+	if(brackets == 0 && pos > 0)
+		return _splitAtPosition(code, pos);
+	var c = code.charAt(pos);
+	if(c == "(") brackets++;
+	else if(c == ")") brackets--;
+
+	return _decapitateComplex(code, brackets, pos+1);
+}
+
+function _decapitate(code) {
+	if(code.charAt(0) == "(")
+		return _decapitateComplex(code, 0, 0);
+	else
+		return _splitAtPosition(code, code.indexOf(" "));
+}
+
 function parse(code) {
 	if(code.charAt(0) != "(")
 		return _createAtom(code);
 	else {
-			var elements = code.substring(1, code.length-1).split(" ");
-			var head = parse(elements.shift());
-			var tail = parse(elements.join(" "));
+			var elements = _decapitate(code.substring(1, code.length-1));
+			var head = parse(elements[0]);
+			var tail = parse(elements[1]);
 			var tailList = tail.atom ? _createList(tail, NIL) : tail;
 			return _createList(head, tailList);
 		};
