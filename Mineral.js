@@ -1,14 +1,14 @@
 "use strict";
 
-var NIL = [];
+function _createAtom(x) {
+	return { "atom": x };
+}
+
+var NIL = _createAtom("NIL");
 
 function _flattenList(memo, list) {
 	memo.push(list.head);
 	return list.tail == NIL ? memo : _flattenList(memo, list.tail);
-}
-
-function _createAtom(x) {
-	return { "atom": x };
 }
 
 function _createList(head, tail) {
@@ -25,12 +25,12 @@ var quote = function(x) {
 };
 
 var atom = function(x) {
-	return _createAtom(x.atom || (x.list && !x.head));
+	return _createAtom(x.atom != undefined);
 };
 
 var eq = function(args) {
 	var a = args[0], b = args[1];
-	return _createAtom((a.atom && a.atom == b.atom) || (a.list && b.list && !a.head && !b.head));
+	return _createAtom(a.atom != undefined && a.atom == b.atom);
 }
 
 var head = function(list) {
@@ -47,38 +47,35 @@ var cons = function(args) {
 }
 
 var branch = function(args) {
-	var guard = args[0], thenAction = args[1], elseAction = args[2];
-	return evaluate(evaluate(guard) ? thenAction : elseAction);
+	var guard = evaluate(args[0]), thenAction = args[1], elseAction = args[2];
+	return evaluate(guard.atom != false && guard != NIL ? thenAction : elseAction);
 }
 
 var apply = function(f, args) {
-	return f(args);
+	return f(args.length == 1 ? args[0] : args);
 }
 
 function evaluate(x) {
-	if (x.atom)
+	if (x.atom != undefined)
 		return eval(x.atom);
 	else {
 		var f = evaluate(x.head);
 		var args = _flattenList([], x.tail)
 		if(f != branch && f != quote)
-			for(var i = 0; i < args.length; i++)
-				args[i] = evaluate(args[i]);
+			for(var i in args) args[i] = evaluate(args[i]);
 		return apply(f, args);
 	}
 }
 
 function _splitAtPosition(text, pos) {
-	return new Array(text.substring(0, pos), text.substring(pos+1, text.length));
+	return [text.substring(0, pos), text.substring(pos+1, text.length)];
 }
 
 function _decapitateComplex(code, brackets, pos) {
-	if(brackets == 0 && pos > 0)
-		return _splitAtPosition(code, pos);
+	if(brackets == 0 && pos > 0) return _splitAtPosition(code, pos);
 	var c = code.charAt(pos);
 	if(c == "(") brackets++;
 	else if(c == ")") brackets--;
-
 	return _decapitateComplex(code, brackets, pos+1);
 }
 
@@ -94,8 +91,8 @@ function _tokenize(code) {
 }
 
 function parse(code) {
-	if(code == "()" || code.charAt(0) != "(")
-		return _createAtom(code);
+	if(code.charAt(0) != "(")
+		return code == "NIL" ? NIL : _createAtom(code);
 	else {
 			var tokens = _tokenize(code.substring(1, code.length-1));
 			for(var i in tokens) tokens[i] = parse(tokens[i]);
@@ -104,11 +101,56 @@ function parse(code) {
 }
 
 function stringify(code) {
-	if(code.atom) return code.atom;
+	if(code.atom != undefined) return code.atom;
 	if(code.tail == NIL) return "(" + stringify(code.head) + ")";
 	var flattened = _flattenList([], code);
 	var output = "";
 	for(var i in flattened) output += stringify(flattened[i]) + " ";
 	output = output.substring(0, output.length-1);
 	return "(" + output + ")";
+}
+
+function runTests() {
+
+	var counter = 0;
+
+	var assertEqual = function(input, output) {
+		if(output == stringify(evaluate(parse(input)))) {
+			console.log("Test " + (counter++) + " successful: execution of '"
+						+ input + "' produces '" + output + "'");
+			return true;
+		}
+		else {
+			console.error("Test failed: execution of '" 
+						+ input + "' doesn't produce '" + output + "'");
+			return false;
+		}
+	}
+
+	assertEqual("(quote a)", "a");
+	assertEqual("(quote (a b c))", "(a b c)");
+	assertEqual("(atom (quote a))", true);
+	assertEqual("(atom (quote (a b c)))", false);
+	assertEqual("(atom (quote NIL))", true);
+	assertEqual("(atom (atom (quote a)))", true);
+	assertEqual("(atom (quote (atom (quote a))))", false);
+	assertEqual("(eq (quote a) (quote a))", true);
+	assertEqual("(eq (quote a) (quote b))", false);
+	assertEqual("(eq (quote NIL) (quote NIL))", true);
+	assertEqual("(head (quote (a b c)))", "a");
+	assertEqual("(tail (quote (a b c)))", "(b c)");
+	assertEqual("(cons (quote a) (quote (b c)))", "(a b c)");
+	assertEqual("(cons (quote a) (cons (quote b) (cons (quote c) (quote NIL))))", "(a b c)");
+	assertEqual("(cons (quote a) NIL)", "(a)");
+	assertEqual("(cons (quote a) (quote NIL))", "(a)");
+	assertEqual("(branch (eq (quote a) (quote b)) (quote first) (quote second))", "second");
+	assertEqual("(branch (eq NIL NIL) (quote first) (quote second))", "first");
+
+}
+
+function normalize(code) {
+	/**
+	replace all whitespaces by a single space
+	replace all () by NIL
+	*/
 }
