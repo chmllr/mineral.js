@@ -86,10 +86,9 @@ function parse(code) {
 	if(code.charAt(0) != "(")
 		return code;
 	else {
-			var tokens = _tokenize(code.substring(1, code.length-1));
-			for(var i in tokens) tokens[i] = parse(tokens[i]);
-			return tokens;
-		};
+		var tokens = _tokenize(code.substring(1, code.length-1));
+		for(var i in tokens) tokens[i] = parse(tokens[i]); return tokens;
+	};
 }
 
 function stringify(code) {
