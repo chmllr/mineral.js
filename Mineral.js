@@ -25,8 +25,8 @@ var env = {
 		return a == b || (isNIL(a) && isNIL(b));
 	},
 
-	"head":  function(list) {
-		return list[0][0];
+	"head":  function(args) {
+		return args[0][0];
 	},
 
 	"tail": function(args) {
@@ -51,8 +51,7 @@ var env = {
 		return function(largs) {
 			console.assert(bindings.length == largs.length);
 			var localEnv = {};
-			for (var i in largs)
-				localEnv[bindings[i]] = largs[i];
+			for (var i in largs) localEnv[bindings[i]] = largs[i];
 			return evaluate(exp, localEnv);
 		}
 	}
@@ -71,9 +70,9 @@ function resolve(value, locanEnv) {
 function evaluate(x, localEnv) {
 	if (!isList(x)) return resolve(x, localEnv);
 	else {
-		var token = x.shift();
+		var token = x[0];
 		var f = evaluate(token, localEnv);
-		var args = x;
+		var args = x.slice(1);
 		if(["quote", "branch", "lambda"].indexOf(token) < 0)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
 		return f(args);
@@ -108,7 +107,8 @@ function parse(code) {
 		return code;
 	else {
 		var tokens = _tokenize(code.substring(1, code.length-1));
-		for(var i in tokens) tokens[i] = parse(tokens[i]); return tokens;
+		for(var i in tokens) tokens[i] = parse(tokens[i]);
+			return tokens;
 	};
 }
 
@@ -116,8 +116,7 @@ function stringify(code) {
 	if(!isList(code)) return code;
 	var output = "";
 	for(var i in code) output += stringify(code[i]) + " ";
-	output = output.substring(0, output.length-1);
-	return "(" + output + ")";
+	return "(" + output.substring(0, output.length-1) + ")";
 }
 
 function normalize(code) {
