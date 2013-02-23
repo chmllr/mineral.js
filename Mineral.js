@@ -10,50 +10,56 @@ function isNIL(x) {
 	return isList(x) && x.length == 0;
 }
 
-var quote = function(x) {
-	return x;
-};
+var env = {
+	"quote": function(x) {
+		return x;
+	},
 
-var atom = function(x) {
-	return !isList(x) || isNIL(x);
-};
+	"atom":  function(x) {
+		return !isList(x) || isNIL(x);
+	},
 
-var eq = function(args) {
-	var a = args[0], b = args[1];
-	return a == b || (isNIL(a) && isNIL(b));
+	"eq": function(args) {
+		var a = args[0], b = args[1];
+		return a == b || (isNIL(a) && isNIL(b));
+	},
+
+	"head":  function(list) {
+		return list[0];
+	},
+
+	"tail": function(list) {
+		return list.slice(1,list.length);
+	},
+
+	"cons": function(args) {
+		var element = args[0], list = args[1].slice(0);
+		if (list == NIL) list = [];
+		list.unshift(element);
+		return list;
+	},
+
+	"branch": function(args) {
+		var guard = evaluate(args[0]), thenAction = args[1], elseAction = args[2];
+		return evaluate(guard != false && !isNIL(guard) ? thenAction : elseAction);
+	}
 }
 
-var head = function(list) {
-	return list[0];
-}
-
-var tail = function(list) {
-	return list.slice(1,list.length);
-}
-
-var cons = function(args) {
-	var element = args[0], list = args[1].slice(0);
-	if (list == NIL) list = [];
-	list.unshift(element);
-	return list;
-}
-
-var branch = function(args) {
-	var guard = evaluate(args[0]), thenAction = args[1], elseAction = args[2];
-	return evaluate(guard != false && !isNIL(guard) ? thenAction : elseAction);
-}
-
-var apply = function(f, args) {
+function apply(f, args) {
 	return f(args.length == 1 ? args[0] : args);
 }
 
 function evaluate(x) {
-	if (!isList(x))
+	if (!isList(x)) {
+		var value = env[x];
+		if(value) return value;
 		return eval(x);
+	}
 	else {
-		var f = evaluate(x.shift());
+		var token = x.shift();
+		var f = evaluate(token);
 		var args = x;
-		if(f != branch && f != quote)
+		if(token != "quote" && token != "branch")
 			for(var i in args) args[i] = evaluate(args[i]);
 		return apply(f, args);
 	}
