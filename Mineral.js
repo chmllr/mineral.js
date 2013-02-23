@@ -72,8 +72,9 @@ function _decapitate(code, brackets, pos) {
 }
 
 function _tokenize(code) {
-	var pair = code.charAt(0) == "(" ? _decapitate(code, 0, 0)
-									 : _splitAtPosition(code, code.indexOf(" "));
+	var pair = code.charAt(0) == "(" 
+		? _decapitate(code, 0, 0)
+		: _splitAtPosition(code, code.indexOf(" "));
 	if (pair[0] == "") return [pair[1]];
 	if (pair[1] == "") return [pair[0]];
 	var intermediate = _tokenize(pair[1]);
@@ -93,7 +94,6 @@ function parse(code) {
 
 function stringify(code) {
 	if(!isList(code)) return code;
-	if(code.length == 1) return "(" + stringify(code[0]) + ")";
 	var output = "";
 	for(var i in code) output += stringify(code[i]) + " ";
 	output = output.substring(0, output.length-1);
