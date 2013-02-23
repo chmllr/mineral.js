@@ -32,13 +32,15 @@ var tail = function(list) {
 }
 
 var cons = function(args) {
-	var element = args[0], list = args[1];
-	return list.unshift(element);
+	var element = args[0], list = args[1].slice(0);
+	if (list == NIL) list = [];
+	list.unshift(element);
+	return list;
 }
 
 var branch = function(args) {
 	var guard = evaluate(args[0]), thenAction = args[1], elseAction = args[2];
-	return evaluate(guard != false && !isNil(guard) ? thenAction : elseAction);
+	return evaluate(guard != false && !isNIL(guard) ? thenAction : elseAction);
 }
 
 var apply = function(f, args) {
@@ -46,7 +48,6 @@ var apply = function(f, args) {
 }
 
 function evaluate(x) {
-	if (x == "NIL") return [];
 	if (!isList(x))
 		return eval(x);
 	else {
