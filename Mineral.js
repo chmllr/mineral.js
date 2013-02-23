@@ -1,23 +1,13 @@
 "use strict";
 
-function _createAtom(x) {
-	return { "atom": x };
+var NIL = "NIL";
+
+function isList(x) {
+	return x instanceof Array;
 }
 
-var NIL = _createAtom("NIL");
-
-function _flattenList(memo, list) {
-	memo.push(list.head);
-	return list.tail == NIL ? memo : _flattenList(memo, list.tail);
-}
-
-function _createList(head, tail) {
-	return { "head": head, "tail": tail };
-}
-
-function _createListRec(list) {
-	if (list.length == 1) return _createList(list[0], NIL);
-	return { "head": list.shift(), "tail": _createListRec(list) };
+function isNIL(x) {
+	return isList(x) && x.length == 0;
 }
 
 var quote = function(x) {
@@ -25,30 +15,30 @@ var quote = function(x) {
 };
 
 var atom = function(x) {
-	return _createAtom(x.atom != undefined);
+	return !isList(x) || isNIL(x);
 };
 
 var eq = function(args) {
 	var a = args[0], b = args[1];
-	return _createAtom(a.atom != undefined && a.atom == b.atom);
+	return a == b || (isNIL(a) && isNIL(b));
 }
 
 var head = function(list) {
-	return list.head;
+	return list[0];
 }
 
 var tail = function(list) {
-	return list.tail;
+	return list.slice(1,list.length);
 }
 
 var cons = function(args) {
 	var element = args[0], list = args[1];
-	return _createList(element, list);
+	return list.unshift(element);
 }
 
 var branch = function(args) {
 	var guard = evaluate(args[0]), thenAction = args[1], elseAction = args[2];
-	return evaluate(guard.atom != false && guard != NIL ? thenAction : elseAction);
+	return evaluate(guard != false && !isNil(guard) ? thenAction : elseAction);
 }
 
 var apply = function(f, args) {
@@ -56,11 +46,12 @@ var apply = function(f, args) {
 }
 
 function evaluate(x) {
-	if (x.atom != undefined)
-		return eval(x.atom);
+	if (x == "NIL") return [];
+	if (!isList(x))
+		return eval(x);
 	else {
-		var f = evaluate(x.head);
-		var args = _flattenList([], x.tail)
+		var f = evaluate(x.shift());
+		var args = x;
 		if(f != branch && f != quote)
 			for(var i in args) args[i] = evaluate(args[i]);
 		return apply(f, args);
@@ -91,20 +82,19 @@ function _tokenize(code) {
 
 function parse(code) {
 	if(code.charAt(0) != "(")
-		return code == "NIL" ? NIL : _createAtom(code);
+		return code;
 	else {
 			var tokens = _tokenize(code.substring(1, code.length-1));
 			for(var i in tokens) tokens[i] = parse(tokens[i]);
-			return _createListRec(tokens);
+			return tokens;
 		};
 }
 
 function stringify(code) {
-	if(code.atom != undefined) return code.atom;
-	if(code.tail == NIL) return "(" + stringify(code.head) + ")";
-	var flattened = _flattenList([], code);
+	if(!isList(code)) return code;
+	if(code.length == 1) return "(" + stringify(code[0]) + ")";
 	var output = "";
-	for(var i in flattened) output += stringify(flattened[i]) + " ";
+	for(var i in code) output += stringify(code[i]) + " ";
 	output = output.substring(0, output.length-1);
 	return "(" + output + ")";
 }
