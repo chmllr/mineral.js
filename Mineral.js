@@ -11,11 +11,12 @@ function isNIL(x) {
 }
 
 var env = {
-	"quote": function(x) {
-		return x;
+	"quote": function(args) {
+		return args[0];
 	},
 
-	"atom":  function(x) {
+	"atom":  function(args) {
+		var x = args[0];
 		return !isList(x) || isNIL(x);
 	},
 
@@ -25,10 +26,11 @@ var env = {
 	},
 
 	"head":  function(list) {
-		return list[0];
+		return list[0][0];
 	},
 
-	"tail": function(list) {
+	"tail": function(args) {
+		var list = args[0];
 		return list.slice(1,list.length);
 	},
 
@@ -42,26 +44,39 @@ var env = {
 	"branch": function(args) {
 		var guard = evaluate(args[0]), thenAction = args[1], elseAction = args[2];
 		return evaluate(guard != false && !isNIL(guard) ? thenAction : elseAction);
+	},
+
+	"lambda": function(args) {
+		var bindings = args[0], exp = args[1];
+		return function(largs) {
+			console.assert(bindings.length == largs.length);
+			var localEnv = {};
+			for (var i in largs)
+				localEnv[bindings[i]] = largs[i];
+			return evaluate(exp, localEnv);
+		}
 	}
 }
 
-function apply(f, args) {
-	return f(args.length == 1 ? args[0] : args);
+function resolve(value, locanEnv) {
+	var result;
+	if (locanEnv) {
+		result = locanEnv[value];
+		if (result) return result;
+	}
+	result = env[value];
+	return result ? result : eval(value);
 }
 
-function evaluate(x) {
-	if (!isList(x)) {
-		var value = env[x];
-		if(value) return value;
-		return eval(x);
-	}
+function evaluate(x, localEnv) {
+	if (!isList(x)) return resolve(x, localEnv);
 	else {
 		var token = x.shift();
-		var f = evaluate(token);
+		var f = evaluate(token, localEnv);
 		var args = x;
-		if(token != "quote" && token != "branch")
-			for(var i in args) args[i] = evaluate(args[i]);
-		return apply(f, args);
+		if(["quote", "branch", "lambda"].indexOf(token) < 0)
+			for(var i in args) args[i] = evaluate(args[i], localEnv);
+		return f(args);
 	}
 }
 

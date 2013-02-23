@@ -26,5 +26,7 @@ function runTests() {
 	assertEqual("(cons (quote a) (quote NIL))", "(a)");
 	assertEqual("(branch (eq (quote a) (quote b)) (quote first) (quote second))", "second");
 	assertEqual("(branch (eq NIL NIL) (quote first) (quote second))", "first");
+	assertEqual("((lambda (x) (cons x (quote (b))))  (quote a))", "(a b)");
+	assertEqual("((lambda (x y) (cons x (tail y))) (quote z) (quote (a b c)))", "(z b c)");
 
 }
