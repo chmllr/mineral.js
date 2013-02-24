@@ -29,6 +29,6 @@ function runTests() {
 	assertEqual("((lambda (x) (cons x (quote (b)))) (quote a))", "(a b)");
 	assertEqual("((lambda (x y) (cons x (tail y))) (quote z) (quote (a b c)))", "(z b c)");
 	assertEqual("((lambda (f) (f (quote (b c)))) (lambda (x) (cons (quote a) x)))", "(a b c)");
-	assertEqual("((label subst (lambda (x y z) (branch (atom z) (branch (eq z y) x z) (cons (subst x y (head z)) (subst x y (tail z)))))) (quote m) (quote b) (quote (a b (a b c) d)))", "(a m (a m c) d)");
+	assertEqual("((def subst (lambda (x y z) (branch (atom z) (branch (eq z y) x z) (cons (subst x y (head z)) (subst x y (tail z)))))) (quote m) (quote b) (quote (a b (a b c) d)))", "(a m (a m c) d)");
 
 }

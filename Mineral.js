@@ -55,7 +55,7 @@ var env = {
 		}
 	},
 
-	"label": function(args) {
+	"def": function(args) {
 		var name = args[0], value = args[1];
 		var locanEnv = {};
 		locanEnv[name] = function(x) { return env[name](x); };
@@ -80,7 +80,7 @@ function evaluate(x, localEnv) {
 		var token = x[0];
 		var f = evaluate(token, localEnv);
 		var args = x.slice(1);
-		if(["quote", "branch", "lambda", "label"].indexOf(token) < 0)
+		if(["quote", "branch", "lambda", "def"].indexOf(token) < 0)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
 		return f(args, localEnv);
 	}
