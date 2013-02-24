@@ -41,19 +41,26 @@ var env = {
 		return list;
 	},
 
-	"branch": function(args) {
-		var guard = evaluate(args[0]), thenAction = args[1], elseAction = args[2];
-		return evaluate(guard != false && !isNIL(guard) ? thenAction : elseAction);
+	"branch": function(args, localEnv) {
+		var guard = evaluate(args[0], localEnv), thenAction = args[1], elseAction = args[2];
+		return evaluate(guard != false && !isNIL(guard) ? thenAction : elseAction, localEnv);
 	},
 
 	"lambda": function(args) {
 		var bindings = args[0], exp = args[1];
 		return function(largs) {
-			console.assert(bindings.length == largs.length);
 			var localEnv = {};
 			for (var i in largs) localEnv[bindings[i]] = largs[i];
 			return evaluate(exp, localEnv);
 		}
+	},
+
+	"label": function(args) {
+		var name = args[0], value = args[1];
+		var locanEnv = {};
+		locanEnv[name] = function(x) { return env[name](x); };
+		env[name] = evaluate(value, locanEnv);
+		return env[name];
 	}
 }
 
@@ -73,9 +80,9 @@ function evaluate(x, localEnv) {
 		var token = x[0];
 		var f = evaluate(token, localEnv);
 		var args = x.slice(1);
-		if(["quote", "branch", "lambda"].indexOf(token) < 0)
+		if(["quote", "branch", "lambda", "label"].indexOf(token) < 0)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
-		return f(args);
+		return f(args, localEnv);
 	}
 }
 
