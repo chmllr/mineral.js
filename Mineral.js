@@ -1,7 +1,5 @@
 "use strict";
 
-var NIL = "NIL";
-
 function isList(x) {
 	return x instanceof Array;
 }
@@ -11,6 +9,9 @@ function isNIL(x) {
 }
 
 var env = {
+
+	"NIL": "NIL",
+
 	"quote": function(args) {
 		return args[0];
 	},
@@ -36,12 +37,12 @@ var env = {
 
 	"cons": function(args) {
 		var element = args[0], list = args[1].slice(0);
-		if (list == NIL) list = [];
+		if (list == "NIL") return [element];
 		list.unshift(element);
 		return list;
 	},
 
-	"branch": function(args, localEnv) {
+	"if": function(args, localEnv) {
 		var guard = evaluate(args[0], localEnv), thenAction = args[1], elseAction = args[2];
 		return evaluate(guard != false && !isNIL(guard) ? thenAction : elseAction, localEnv);
 	},
@@ -80,7 +81,7 @@ function evaluate(x, localEnv) {
 		var token = x[0];
 		var f = evaluate(token, localEnv);
 		var args = x.slice(1);
-		if(["quote", "branch", "lambda", "def"].indexOf(token) < 0)
+		if(["quote", "if", "lambda", "def"].indexOf(token) < 0)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
 		return f(args, localEnv);
 	}
@@ -127,8 +128,17 @@ function stringify(code) {
 }
 
 function normalize(code) {
-	/**
-	replace all whitespaces by a single space
-	replace all () by NIL
-	*/
+
+	var patterns = [
+		{ "pattern": /[\s\t\n\r]+/g, "substitution": " " }
+	];
+
+	for(var i in patterns)
+		code = code.replace(patterns[i].pattern, patterns[i].substitution);
+	
+	return code.trim();
+}
+
+function interpret(input) {
+	return stringify(evaluate(parse(normalize(input))));
 }

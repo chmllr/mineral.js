@@ -6,7 +6,7 @@ Mineral.js is a yet another Lisp on JS started as an exercise after reading the 
 
  - `t` is `true`
  - `()` is `false`
- - `cond` is `branch`, but `branch` primitiver: `(branch guard then-action  else-action)`
+ - `cond` is `if` with intuitive semantics: `(if guard then-action  else-action)`
  - `car` is `head`
  - `cdr` is `tail`
  - `label` is `def`
