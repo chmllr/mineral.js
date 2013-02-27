@@ -16,52 +16,48 @@ var env = {
 
 	"nil": [],
 
-	"quote": function(args) {
-		return args[0];
+	"quote": function(x) {
+		return x;
 	},
 
-	"atom":  function(args) {
-		var x = args[0];
+	"atom":  function(x) {
 		return !isList(x) || isNIL(x);
 	},
 
-	"eq": function(args) {
-		var a = args[0], b = args[1];
+	"eq": function(a, b) {
 		return a == b || (isNIL(a) && isNIL(b));
 	},
 
-	"head":  function(args) {
-		return args[0][0];
+	"head":  function(list) {
+		return list[0];
 	},
 
-	"tail": function(args) {
-		var list = args[0];
+	"tail": function(list) {
 		return list.slice(1,list.length);
 	},
 
-	"cons": function(args) {
-		var element = args[0], list = args[1].slice(0);
+	"cons": function(element, list) {
 		if(list == "nil") return [element];
 		list.unshift(element);
 		return list;
 	},
 
-	"if": function(args, localEnv) {
-		var guard = evaluate(args[0], localEnv), thenAction = args[1], elseAction = args[2];
-		return evaluate(guard != false && !isNIL(guard) ? thenAction : elseAction, localEnv);
+	"if": function(guard, thenAction, elseAction, localEnv) {
+		var value = evaluate(guard, localEnv);
+		return evaluate(value != false && !isNIL(value) ? thenAction : elseAction, localEnv);
 	},
 
-	"lambda": function(args) {
-		var bindings = args[0], exp = args[1];
-		return function(largs) {
+	"lambda": function(bindings, exp) {
+		var lambda = function(args) {
 			var localEnv = {};
-			for (var i in largs) localEnv[bindings[i]] = largs[i];
+			for (var i in args) localEnv[bindings[i]] = args[i];
 			return evaluate(exp, localEnv);
 		}
+		lambda["expectsArray"] = true;
+		return lambda;
 	},
 
-	"def": function(args) {
-		var name = args[0], value = args[1];
+	"def": function(name, value) {
 		var locanEnv = {};
 		locanEnv[name] = function(x) { return env[name](x); };
 		env[name] = evaluate(value, locanEnv);
@@ -88,7 +84,9 @@ function evaluate(x, localEnv) {
 		var args = x.slice(1);
 		if(["quote", "if", "lambda", "def"].indexOf(token) < 0)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
-		return f(args, localEnv);
+		if(token == "if") args.push(localEnv);
+		if(f.expectsArray) args = [args];
+		return f.apply(this, args);
 	}
 }
 
