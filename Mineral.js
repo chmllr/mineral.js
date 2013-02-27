@@ -87,34 +87,33 @@ function evaluate(x, localEnv) {
 	}
 }
 
-function splitAtPosition(text, pos) {
-	return [text.substring(0, pos), text.substring(pos+1, text.length)];
+function tokenize(code, memo, pos) {
+	if(code.length <= pos) return memo;
+	var current = code.charAt(pos);
+	if(current == ")") throwSyntaxError(pos);
+	if(current == "(") {
+		var brackets = 1, oldPos = pos;
+		while(brackets > 0) {
+			pos++;
+			if(brackets < 0 || pos == code.length) throwSyntaxError(pos);
+			if(code.charAt(pos) == "(") brackets++;
+			if(code.charAt(pos) == ")") brackets--;
+		}
+		memo.push(tokenize(code.substring(oldPos+1, pos), [], 0));
+	} else if(current != " ") {
+		var token = current;
+		while(pos < code.length && code.charAt(++pos) != " ") token += code.charAt(pos);
+		memo.push(token);
+	}
+	return tokenize(code, memo, pos+1);
 }
 
-function decapitate(code, brackets, pos) {
-	if(brackets == 0 && pos > 0) return splitAtPosition(code, pos);
-	var c = code.charAt(pos);
-	if(c == "(") brackets++;
-	else if(c == ")") brackets--;
-	return decapitate(code, brackets, pos+1);
-}
-
-function tokenize(code) {
-	var pair = code.charAt(0) == "(" 
-		? decapitate(code, 0, 0)
-		: splitAtPosition(code, code.indexOf(" "));
-	if (pair[0] == "") return [pair[1]];
-	if (pair[1] == "") return [pair[0]];
-	var intermediate = tokenize(pair[1]);
-	intermediate.unshift(pair[0]);
-	return intermediate;
+function throwSyntaxError(pos) {
+	throw("Syntax error at position " + pos);
 }
 
 function parse(code) {
-	if(code.charAt(0) != "(") return code;
-	var tokens = tokenize(code.substring(1, code.length-1));
-	for(var i in tokens) tokens[i] = parse(tokens[i]);
-		return tokens;
+	return tokenize(code, [], 0)[0];
 }
 
 function stringify(code) {
