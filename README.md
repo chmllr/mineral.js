@@ -1,6 +1,6 @@
 # README
 
-Mineral.js is a yet another Lisp on JS started as an exercise after reading the "Roots of Lisp" paper by Paul Graham.
+Mineral.js is a yet another Lisp on JS started as an exercise after reading "The Roots of Lisp" paper by Paul Graham.
 
 ## Differences with Lisp
 
