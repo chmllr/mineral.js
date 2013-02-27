@@ -1,5 +1,9 @@
 "use strict";
 
+function isSymbol(x) {
+	return typeof(x) == "string" && ":" == x.charAt(0);
+}
+
 function isList(x) {
 	return x instanceof Array;
 }
@@ -72,7 +76,8 @@ function resolve(value, locanEnv) {
 		if (result) return result;
 	}
 	result = env[value];
-	return result ? result : eval(value);
+	if(result) return result;
+	return isSymbol(value) ? value : eval(value);
 }
 
 function evaluate(x, localEnv) {
