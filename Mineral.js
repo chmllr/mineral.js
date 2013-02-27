@@ -89,7 +89,11 @@ function evaluate(x, localEnv) {
 
 function tokenize(code, memo, pos) {
 	if(code.length <= pos) return memo;
-	var current = code.charAt(pos);
+	var current = code.charAt(pos), quoted = false;
+	if(current == "'") {
+		current = code.charAt(++pos);
+		quoted = true;
+	}
 	if(current == ")") throwSyntaxError(pos);
 	if(current == "(") {
 		var brackets = 1, oldPos = pos;
@@ -99,11 +103,12 @@ function tokenize(code, memo, pos) {
 			if(code.charAt(pos) == "(") brackets++;
 			if(code.charAt(pos) == ")") brackets--;
 		}
-		memo.push(tokenize(code.substring(oldPos+1, pos), [], 0));
+		var result = tokenize(code.substring(oldPos+1, pos), [], 0);
+		memo.push(quoted ? ["quote", result] : result);
 	} else if(current != " ") {
 		var token = current;
 		while(pos < code.length && code.charAt(++pos) != " ") token += code.charAt(pos);
-		memo.push(token);
+		memo.push(quoted ? ["quote", token] : token);
 	}
 	return tokenize(code, memo, pos+1);
 }

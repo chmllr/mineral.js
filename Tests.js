@@ -10,27 +10,27 @@ function assertEqual (n, input, output) {
 
 function runTests() {
 
-	assertEqual(1, "(quote a)", "a");
-	assertEqual(2, "(quote (a b c))", "(a b c)");
-	assertEqual(3, "(atom (quote a))", true);
-	assertEqual(4, "(atom (quote (a b c)))", false);
-	assertEqual(5, "(atom (quote NIL))", true);
-	assertEqual(6, "(atom (atom (quote a)))", true);
-	assertEqual(7, "(atom (quote (atom (quote a))))", false);
-	assertEqual(8, "(eq (quote a) (quote a))", true);
-	assertEqual(9, "(eq (quote a) (quote b))", false);
-	assertEqual(10, "(eq (quote NIL) (quote NIL))", true);
-	assertEqual(11, "(head (quote (a b c)))", "a");
-	assertEqual(12, "(tail (quote (a b c)))", "(b c)");
-	assertEqual(13, "(cons (quote a) (quote (b c)))", "(a b c)");
-	assertEqual(14, "(cons (quote a) (cons (quote b) (cons (quote c) (quote NIL))))", "(a b c)");
-	assertEqual(15, "(cons (quote a) NIL)", "(a)");
-	assertEqual(16, "(cons (quote a) (quote NIL))", "(a)");
-	assertEqual(17, "(if (eq (quote a) (quote b)) (quote first) (quote second))", "second");
-	assertEqual(18, "(if (eq NIL NIL) (quote first) (quote second))", "first");
-	assertEqual(19, "((lambda (x) (cons x (quote (b)))) (quote a))", "(a b)");
-	assertEqual(20, "((lambda (x y) (cons x (tail y))) (quote z) (quote (a b c)))", "(z b c)");
-	assertEqual(21, "((lambda (f) (f (quote (b c)))) (lambda (x) (cons (quote a) x)))", "(a b c)");
-	assertEqual(22, "((def subst (lambda (x y z) (if (atom z) (if (eq z y) x z) (cons (subst x y (head z)) (subst x y (tail z)))))) (quote m) (quote b) (quote (a b (a b c) d)))", "(a m (a m c) d)");
+	assertEqual(1, "'a", "a");
+	assertEqual(2, "'(a b c)", "(a b c)");
+	assertEqual(3, "(atom 'a)", true);
+	assertEqual(4, "(atom '(a b c))", false);
+	assertEqual(5, "(atom 'NIL)", true);
+	assertEqual(6, "(atom (atom 'a))", true);
+	assertEqual(7, "(atom (atom 'a))", false);
+	assertEqual(8, "(eq 'a 'a)", true);
+	assertEqual(9, "(eq 'a 'b)", false);
+	assertEqual(10, "(eq 'NIL 'NIL)", true);
+	assertEqual(11, "(head '(a b c))", "a");
+	assertEqual(12, "(tail '(a b c))", "(b c)");
+	assertEqual(13, "(cons 'a '(b c))", "(a b c)");
+	assertEqual(14, "(cons 'a (cons 'b (cons 'c' 'NIL)))", "(a b c)");
+	assertEqual(15, "(cons 'a NIL)", "(a)");
+	assertEqual(16, "(cons 'a 'NIL)", "(a)");
+	assertEqual(17, "(if (eq 'a 'b) 'first 'second)", "second");
+	assertEqual(18, "(if (eq NIL NIL) 'first 'second)", "first");
+	assertEqual(19, "((lambda (x) (cons x '(b))) 'a)", "(a b)");
+	assertEqual(20, "((lambda (x y) (cons x (tail y))) 'z '(a b c))", "(z b c)");
+	assertEqual(21, "((lambda (f) (f '(b c))) (lambda (x) (cons 'a x)))", "(a b c)");
+	assertEqual(22, "((def subst (lambda (x y z) (if (atom z) (if (eq z y) x z) (cons (subst x y (head z)) (subst x y (tail z)))))) 'm 'b '(a b (a b c) d))", "(a m (a m c) d)");
 
 }
