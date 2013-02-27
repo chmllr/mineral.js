@@ -14,7 +14,7 @@ function isNIL(x) {
 
 var env = {
 
-	"NIL": "NIL",
+	"nil": [],
 
 	"quote": function(args) {
 		return args[0];
@@ -41,7 +41,7 @@ var env = {
 
 	"cons": function(args) {
 		var element = args[0], list = args[1].slice(0);
-		if (list == "NIL") return [element];
+		if(list == "nil") return [element];
 		list.unshift(element);
 		return list;
 	},
@@ -136,6 +136,7 @@ function stringify(code) {
 function normalize(code) {
 
 	var patterns = [
+		{ "pattern": /\(\)/g, "substitution": "nil" },
 		{ "pattern": /[\s\t\n\r]+/g, "substitution": " " }
 	];
 
