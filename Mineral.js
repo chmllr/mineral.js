@@ -14,7 +14,7 @@ function isNIL(x) {
 
 var env = {
 
-	"nil": [],
+	"nil": "nil",
 
 	"quote": function(x) {
 		return x;
