@@ -87,37 +87,34 @@ function evaluate(x, localEnv) {
 	}
 }
 
-function _splitAtPosition(text, pos) {
+function splitAtPosition(text, pos) {
 	return [text.substring(0, pos), text.substring(pos+1, text.length)];
 }
 
-function _decapitate(code, brackets, pos) {
-	if(brackets == 0 && pos > 0) return _splitAtPosition(code, pos);
+function decapitate(code, brackets, pos) {
+	if(brackets == 0 && pos > 0) return splitAtPosition(code, pos);
 	var c = code.charAt(pos);
 	if(c == "(") brackets++;
 	else if(c == ")") brackets--;
-	return _decapitate(code, brackets, pos+1);
+	return decapitate(code, brackets, pos+1);
 }
 
-function _tokenize(code) {
+function tokenize(code) {
 	var pair = code.charAt(0) == "(" 
-		? _decapitate(code, 0, 0)
-		: _splitAtPosition(code, code.indexOf(" "));
+		? decapitate(code, 0, 0)
+		: splitAtPosition(code, code.indexOf(" "));
 	if (pair[0] == "") return [pair[1]];
 	if (pair[1] == "") return [pair[0]];
-	var intermediate = _tokenize(pair[1]);
+	var intermediate = tokenize(pair[1]);
 	intermediate.unshift(pair[0]);
 	return intermediate;
 }
 
 function parse(code) {
-	if(code.charAt(0) != "(")
-		return code;
-	else {
-		var tokens = _tokenize(code.substring(1, code.length-1));
-		for(var i in tokens) tokens[i] = parse(tokens[i]);
-			return tokens;
-	};
+	if(code.charAt(0) != "(") return code;
+	var tokens = tokenize(code.substring(1, code.length-1));
+	for(var i in tokens) tokens[i] = parse(tokens[i]);
+		return tokens;
 }
 
 function stringify(code) {
