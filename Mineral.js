@@ -80,10 +80,15 @@ var mineral = {
 function substitute(exp, localEnv) {
 	if (isNIL(exp)) return [];
 	var token = exp.shift();
-	if(isList(token))
-		return substitute(exp, localEnv).unshift(substitute(token, localEnv));
+	if(isList(token)) {
+		var intermediate = substitute(exp, localEnv);
+		intermediate.unshift(substitute(token, localEnv));
+		return intermediate;
+	}
 	var substitution = localEnv[token];
-	return substitute(exp, localEnv).unshift(substitution ? substitution : token);
+	var intermediate = substitute(exp, localEnv);
+	intermediate.unshift(substitution ? substitution : token);
+	return intermediate;
 }
 
 function resolve(value, localEnv) {
