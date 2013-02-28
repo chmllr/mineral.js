@@ -48,13 +48,12 @@ var mineral = {
 	},
 
 	"lambda": function(bindings, exp) {
-		var lambda = function(args) {
+		return function() {
+			var args = Array.prototype.slice.call(arguments).slice(0, bindings.length);
 			var localEnv = {};
 			for (var i in args) localEnv[bindings[i]] = args[i];
 			return evaluate(exp, localEnv);
 		}
-		lambda["expectsArray"] = true;
-		return lambda;
 	},
 
 	"def": function(name, value) {
@@ -85,7 +84,6 @@ function evaluate(x, localEnv) {
 		if(["quote", "if", "lambda", "def"].indexOf(token) < 0)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
 		if(token == "if") args.push(localEnv);
-		if(f.expectsArray) args = [args];
 		return f.apply(this, args);
 	}
 }
