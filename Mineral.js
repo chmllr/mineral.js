@@ -56,23 +56,45 @@ var mineral = {
 		}
 	},
 
+	"macro": function (bindings, exp) {
+		return function() {
+			var args = Array.prototype.slice.call(arguments).slice(0, bindings.length);
+			var localEnv = {};
+			for (var i in args) localEnv[bindings[i]] = args[i];
+			return sustitute(exp, localEnv);
+		}
+	},
+
 	"def": function(name, value) {
-		var locanEnv = {};
-		locanEnv[name] = function(x) { return mineral[name](x); };
-		mineral[name] = evaluate(value, locanEnv);
+		var localEnv = {};
+		localEnv[name] = function(x) { return mineral[name](x); };
+		mineral[name] = evaluate(value, localEnv);
 		return mineral[name];
+	},
+
+	"evaljs": function(string) {
+		return eval(string);
 	}
 }
 
-function resolve(value, locanEnv) {
+function substitute(exp, localEnv) {
+	if (isNIL(exp)) return [];
+	var token = exp.shift();
+	if(isList(token))
+		return substitute(exp, localEnv).unshift(substitute(token, localEnv));
+	var substitution = localEnv[token];
+	return substitute(exp, localEnv).unshift(substitution ? substitution : token);
+}
+
+function resolve(value, localEnv) {
 	var result;
-	if (locanEnv) {
-		result = locanEnv[value];
+	if (localEnv) {
+		result = localEnv[value];
 		if (result) return result;
 	}
 	result = mineral[value];
 	if(result) return result;
-	return isSymbol(value) ? value : eval(value);
+	return isSymbol(value) ? value : mineral.evaljs(value);
 }
 
 function evaluate(x, localEnv) {
@@ -150,8 +172,10 @@ function interpret(input) {
 function loadFiles() {
     var httpRequest = new XMLHttpRequest();
 	var processText = function() {
-        if (httpRequest.readyState === 4 && httpRequest.status === 200)
-            evaluate(parse(normalize(httpRequest.responseText)));
+        if (httpRequest.readyState === 4 && httpRequest.status === 200) {
+        	var content = "((lambda ()) " + httpRequest.responseText + ")";
+            evaluate(parse(normalize(content)));
+        }
     }
     httpRequest.onreadystatechange = processText;
 	for(var i = 0; i < arguments.length; i++) {

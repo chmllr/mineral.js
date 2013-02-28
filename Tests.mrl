@@ -1,0 +1,6 @@
+(def assert-equal
+		(lamda (n input output)
+			(if (eq output (interpret input))
+				(console.log (str "Test " n " successful: execution of '" input "' produces '" output "'"))
+				(console.error (str "Test failed: execution of '" input "' doesn't produce '" output "'")))))
+
