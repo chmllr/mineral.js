@@ -12,7 +12,7 @@ function isNIL(x) {
 	return isList(x) && x.length == 0;
 }
 
-var env = {
+var mineral = {
 
 	"nil": "nil",
 
@@ -59,9 +59,9 @@ var env = {
 
 	"def": function(name, value) {
 		var locanEnv = {};
-		locanEnv[name] = function(x) { return env[name](x); };
-		env[name] = evaluate(value, locanEnv);
-		return env[name];
+		locanEnv[name] = function(x) { return mineral[name](x); };
+		mineral[name] = evaluate(value, locanEnv);
+		return mineral[name];
 	}
 }
 
@@ -71,7 +71,7 @@ function resolve(value, locanEnv) {
 		result = locanEnv[value];
 		if (result) return result;
 	}
-	result = env[value];
+	result = mineral[value];
 	if(result) return result;
 	return isSymbol(value) ? value : eval(value);
 }
@@ -134,8 +134,9 @@ function stringify(code) {
 function normalize(code) {
 
 	var patterns = [
-		{ "pattern": /\(\)/g, "substitution": "nil" },
-		{ "pattern": /[\s\t\n\r]+/g, "substitution": " " }
+		{ "pattern": /;.*[\n\r]/g, "substitution": "" }, // comments
+		{ "pattern": /\(\)/g, "substitution": "nil" }, // () -> nil
+		{ "pattern": /[\s\t\n\r]+/g, "substitution": " " } // whitespace normalization
 	];
 
 	for(var i in patterns)
