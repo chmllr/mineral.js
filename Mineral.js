@@ -147,3 +147,18 @@ function normalize(code) {
 function interpret(input) {
 	return stringify(evaluate(parse(normalize(input))));
 }
+
+function loadFiles() {
+    var httpRequest = new XMLHttpRequest();
+	var processText = function() {
+        if (httpRequest.readyState === 4 && httpRequest.status === 200)
+            evaluate(parse(normalize(httpRequest.responseText)));
+    }
+    httpRequest.onreadystatechange = processText;
+	for(var i = 0; i < arguments.length; i++) {
+		var fileName = arguments[i];
+		httpRequest.onerror = function () { console.error("Couldn't load " + fileName); }
+	    httpRequest.open('GET', fileName);
+	    httpRequest.send();
+	}
+}
