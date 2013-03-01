@@ -36,5 +36,13 @@ function runTests() {
 	assertEqual(24, "':test", ":test");
 	assertEqual(25, "(cons :a '(:b :c))", "(:a :b :c)");
 	assertEqual(26, "(eq :a :a)", true);
-	assertEqual(27, "(eq :a :b)", false);
+	assertEqual(28, "(eq :a :b)", false);
+	assertEqual(29, "`nil", "nil");
+	assertEqual(30, "`~nil", "nil");
+	assertEqual(31, "`(cons 'a nil)", "(cons (quote a) nil)");
+	assertEqual(32, "'(cons 'a nil)", "(cons (quote a) nil)");
+	assertEqual(33, "''(cons 'a nil)", "(quote (cons (quote a) nil))");
+	assertEqual(34, "`~'a", "a");
+	assertEqual(35, "`(cons ~(if true 'first 'second) (cons ~(eq 'a 'b) nil))", 
+					"(cons first (cons false nil))");
 }

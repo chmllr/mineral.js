@@ -22,6 +22,18 @@ var mineral = {
 		return x;
 	},
 
+	"backquote": function(args, localEnv) {
+		if(isNIL(args)) return [];
+		if (isList(args)) {
+			var token = args.shift();
+			if(token == sugarMap["~"]) return evaluate(args[0]);
+			var result = (isNIL(args) ? [] : mineral.backquote(args))
+			result.unshift(mineral.backquote(token));
+			return result;
+		}
+		return args;
+	},
+
 	"atom":  function(x) {
 		return !isList(x) || isNIL(x);
 	},
@@ -58,15 +70,6 @@ var mineral = {
 		}
 	},
 
-	"macro": function (bindings, exp) {
-		return function() {
-			var args = Array.prototype.slice.call(arguments).slice(0, bindings.length);
-			var localEnv = {};
-			for (var i in args) localEnv[bindings[i]] = args[i];
-			return sustitute(exp, localEnv);
-		}
-	},
-
 	"def": function(name, value) {
 		var localEnv = {};
 		localEnv[name] = function(x) { return mineral[name](x); };
@@ -77,20 +80,6 @@ var mineral = {
 	"evaljs": function(string) {
 		return eval(string);
 	}
-}
-
-function substitute(exp, localEnv) {
-	if (isNIL(exp)) return [];
-	var token = exp.shift();
-	if(isList(token)) {
-		var intermediate = substitute(exp, localEnv);
-		intermediate.unshift(substitute(token, localEnv));
-		return intermediate;
-	}
-	var substitution = localEnv[token];
-	var intermediate = substitute(exp, localEnv);
-	intermediate.unshift(substitution ? substitution : token);
-	return intermediate;
 }
 
 function resolve(value, localEnv) {
@@ -110,9 +99,9 @@ function evaluate(x, localEnv) {
 		var token = x[0];
 		var f = evaluate(token, localEnv);
 		var args = x.slice(1);
-		if(["quote", "if", "lambda", "def"].indexOf(token) < 0)
+		if(["quote", "backquote", "if", "lambda", "def"].indexOf(token) < 0)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
-		if(token == "if") args.push(localEnv);
+		if(["if", "backquote"].indexOf(token) >= 0) args.push(localEnv);
 		return f.apply(this, args);
 	}
 }
