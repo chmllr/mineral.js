@@ -1,8 +1,8 @@
 function assertEqual (n, input, output) {
 	if(output == interpret(input))
-		console.log("Test " + n + " successful: execution of '"
+		console.log("Test " + n + " successful: interpretation of '"
 					+ input + "' produces '" + output + "'");
-	else console.error("Test failed: execution of '"
+	else console.error("Test failed: interpretation of '"
 						+ input + "' doesn't produce '" + output + "'");
 }
 

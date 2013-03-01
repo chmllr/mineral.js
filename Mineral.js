@@ -12,6 +12,8 @@ function isNIL(x) {
 	return isList(x) && x.length == 0;
 }
 
+var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
+
 var mineral = {
 
 	"nil": "nil",
@@ -117,10 +119,12 @@ function evaluate(x, localEnv) {
 
 function tokenize(code, memo, pos) {
 	if(code.length <= pos) return memo;
-	var current = code.charAt(pos), quoted = false;
-	if(current == "'") {
+	var current = code.charAt(pos), result = "", sugared = false, ops = [];
+	if (current == " ") return tokenize(code, memo, pos+1);
+	while(Object.keys(sugarMap).indexOf(current) >= 0) {
+		ops.unshift(sugarMap[current]);
 		current = code.charAt(++pos);
-		quoted = true;
+		sugared = true;
 	}
 	if(current == ")") throwSyntaxError(pos);
 	if(current == "(") {
@@ -131,13 +135,13 @@ function tokenize(code, memo, pos) {
 			if(code.charAt(pos) == "(") brackets++;
 			if(code.charAt(pos) == ")") brackets--;
 		}
-		var result = tokenize(code.substring(oldPos+1, pos), [], 0);
-		memo.push(quoted ? ["quote", result] : result);
-	} else if(current != " ") {
-		var token = current;
-		while(pos < code.length && code.charAt(++pos) != " ") token += code.charAt(pos);
-		memo.push(quoted ? ["quote", token] : token);
-	}
+		result = tokenize(code.substring(oldPos+1, pos), [], 0);
+	} else
+		while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
+	if(sugared)
+		for(var i in ops)
+			result = [ops[i], result];
+	memo.push(result);
 	return tokenize(code, memo, pos+1);
 }
 
