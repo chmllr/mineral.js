@@ -12,12 +12,32 @@ function isNIL(x) {
 	return isList(x) && x.length == 0;
 }
 
+function isSugared(token) {
+	return ["'", "`", "~"].indexOf(token.charAt(0)) >= 0;
+}
+
 var mineral = {
 
 	"nil": "nil",
 
 	"quote": function(x) {
 		return x;
+	},
+
+	"backquote": function(args, localEnv) {
+		if (isList(args)) {
+			if(isNIL(args)) return [];
+			var token = args.shift(), result;
+			if (isList(token))
+				result = mineral.backquote(token);
+			else
+				result = token.charAt(0) == "~" ? evaluate(token.slice(1)) : token;
+			var intermediate = mineral.backquote(args);
+			intermediate.unshift(result);
+			return intermediate
+			
+		} else
+			return args.charAt(0) == "~" ? evaluate(args.slice(1)) : args;
 	},
 
 	"atom":  function(x) {
@@ -56,15 +76,6 @@ var mineral = {
 		}
 	},
 
-	"macro": function (bindings, exp) {
-		return function() {
-			var args = Array.prototype.slice.call(arguments).slice(0, bindings.length);
-			var localEnv = {};
-			for (var i in args) localEnv[bindings[i]] = args[i];
-			return sustitute(exp, localEnv);
-		}
-	},
-
 	"def": function(name, value) {
 		var localEnv = {};
 		localEnv[name] = function(x) { return mineral[name](x); };
@@ -75,20 +86,6 @@ var mineral = {
 	"evaljs": function(string) {
 		return eval(string);
 	}
-}
-
-function substitute(exp, localEnv) {
-	if (isNIL(exp)) return [];
-	var token = exp.shift();
-	if(isList(token)) {
-		var intermediate = substitute(exp, localEnv);
-		intermediate.unshift(substitute(token, localEnv));
-		return intermediate;
-	}
-	var substitution = localEnv[token];
-	var intermediate = substitute(exp, localEnv);
-	intermediate.unshift(substitution ? substitution : token);
-	return intermediate;
 }
 
 function resolve(value, localEnv) {
@@ -108,37 +105,46 @@ function evaluate(x, localEnv) {
 		var token = x[0];
 		var f = evaluate(token, localEnv);
 		var args = x.slice(1);
-		if(["quote", "if", "lambda", "def"].indexOf(token) < 0)
+		if(["quote", "backquote", "if", "lambda", "def"].indexOf(token) < 0)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
-		if(token == "if") args.push(localEnv);
+		if(["if", "backquote"].indexOf(token) < 0) args.push(localEnv);
 		return f.apply(this, args);
 	}
 }
 
 function tokenize(code, memo, pos) {
 	if(code.length <= pos) return memo;
-	var current = code.charAt(pos), quoted = false;
-	if(current == "'") {
-		current = code.charAt(++pos);
-		quoted = true;
-	}
-	if(current == ")") throwSyntaxError(pos);
-	if(current == "(") {
-		var brackets = 1, oldPos = pos;
+	var currentChar = code.charAt(pos);
+	if(currentChar == " ") return tokenize(code, memo, pos+1);
+	var token = nextToken(code.slice(pos));
+	if(isSugared(token)) {
+		var map = { "'": "quote", "`": "backquote", "~": "unquote" };
+		operation = map[currentChar];
+		memo.push([operation, tokenize(token)]);
+	} else if(currentChar == "(")
+		memo.push(tokenize(token, [], 0));
+	else if(currentChar == ")") throwSyntaxError(pos);
+	return tokenize(code, memo, pos + token.length)
+}
+
+function nextToken(code) {
+	var currentChar = code.charAt(0), pos = 0;
+	if(currentChar == "(") {
+		var brackets = 1;
 		while(brackets > 0) {
 			pos++;
 			if(brackets < 0 || pos == code.length) throwSyntaxError(pos);
 			if(code.charAt(pos) == "(") brackets++;
 			if(code.charAt(pos) == ")") brackets--;
 		}
-		var result = tokenize(code.substring(oldPos+1, pos), [], 0);
-		memo.push(quoted ? ["quote", result] : result);
-	} else if(current != " ") {
-		var token = current;
-		while(pos < code.length && code.charAt(++pos) != " ") token += code.charAt(pos);
-		memo.push(quoted ? ["quote", token] : token);
+		return code.substring(1, pos);
 	}
-	return tokenize(code, memo, pos+1);
+	var token = currentChar;
+	if(isSugared(token))
+		token += nextToken(code.slice(1));
+	else
+		while(pos < code.length && code.charAt(++pos) != " ") token += code.charAt(pos);
+	return token;
 }
 
 function throwSyntaxError(pos) {
