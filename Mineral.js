@@ -22,18 +22,6 @@ var mineral = {
 		return x;
 	},
 
-	"backquote": function(args, localEnv) {
-		if(isNIL(args)) return [];
-		if (isList(args)) {
-			var token = args.shift();
-			if(token == sugarMap["~"]) return evaluate(args[0]);
-			var result = (isNIL(args) ? [] : mineral.backquote(args))
-			result.unshift(mineral.backquote(token));
-			return result;
-		}
-		return args;
-	},
-
 	"atom":  function(x) {
 		return !isList(x) || isNIL(x);
 	},
@@ -75,6 +63,18 @@ var mineral = {
 		localEnv[name] = function(x) { return mineral[name](x); };
 		mineral[name] = evaluate(value, localEnv);
 		return mineral[name];
+	},
+
+	"backquote": function(args, localEnv) {
+		if(isNIL(args)) return [];
+		if (isList(args)) {
+			var token = args.shift();
+			if(token == sugarMap["~"]) return evaluate(args[0]);
+			var result = (isNIL(args) ? [] : mineral.backquote(args))
+			result.unshift(mineral.backquote(token));
+			return result;
+		}
+		return args;
 	},
 
 	"evaljs": function(string) {
