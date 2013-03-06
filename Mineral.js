@@ -150,16 +150,13 @@ function stringify(code) {
 }
 
 function normalize(code) {
-
 	var patterns = [
 		{ "pattern": /;.*[\n\r]/g, "substitution": "" }, // comments
 		{ "pattern": /\(\)/g, "substitution": "nil" }, // () -> nil
 		{ "pattern": /[\s\t\n\r]+/g, "substitution": " " } // whitespace normalization
 	];
-
 	for(var i in patterns)
 		code = code.replace(patterns[i].pattern, patterns[i].substitution);
-	
 	return code.trim();
 }
 
@@ -170,11 +167,11 @@ function interpret(input) {
 function loadFiles() {
     var httpRequest = new XMLHttpRequest();
 	var processText = function() {
-        if (httpRequest.readyState === 4 && httpRequest.status === 200) {
-        	var content = "((lambda ()) " + httpRequest.responseText + ")";
-            evaluate(parse(normalize(content)));
-        }
-    }
+		if (httpRequest.readyState === 4 && httpRequest.status === 200) {
+			var content = "((lambda ()) " + httpRequest.responseText + ")";
+			evaluate(parse(normalize(content)));
+		}
+	}
     httpRequest.onreadystatechange = processText;
 	for(var i = 0; i < arguments.length; i++) {
 		var fileName = arguments[i];
