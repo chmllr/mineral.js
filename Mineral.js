@@ -1,9 +1,5 @@
 "use strict";
 
-function isSymbol(x) {
-	return typeof(x) == "string" && ":" == x.charAt(0);
-}
-
 function isList(x) {
 	return x instanceof Array;
 }
@@ -98,7 +94,7 @@ function resolve(value, localEnv) {
 	}
 	result = mineral[value];
 	if(result) return result;
-	return isSymbol(value) ? value : mineral.evaljs(value);
+	return mineral.evaljs(value);
 }
 
 function evaluate(x, localEnv) {

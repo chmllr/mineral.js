@@ -30,11 +30,6 @@ function runTests() {
 	assertEqual(20, "((lambda (x y) (cons x (tail y))) 'z '(a b c))", "(z b c)");
 	assertEqual(21, "((lambda (f) (f '(b c))) (lambda (x) (cons 'a x)))", "(a b c)");
 	assertEqual(22, "((def subst (lambda (x y z) (if (atom z) (if (eq z y) x z) (cons (subst x y (head z)) (subst x y (tail z)))))) 'm 'b '(a b (a b c) d))", "(a m (a m c) d)");
-	assertEqual(23, ":test", ":test");
-	assertEqual(24, "':test", ":test");
-	assertEqual(25, "(cons :a '(:b :c))", "(:a :b :c)");
-	assertEqual(26, "(eq :a :a)", true);
-	assertEqual(28, "(eq :a :b)", false);
 	assertEqual(29, "`()", "()");
 	assertEqual(30, "`~()", "()");
 	assertEqual(31, "`(cons 'a ())", "(cons (quote a) ())");
