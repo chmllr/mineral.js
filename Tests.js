@@ -14,20 +14,20 @@ function runTests() {
 	assertEqual(2, "'(a b c)", "(a b c)");
 	assertEqual(3, "(atom 'a)", true);
 	assertEqual(4, "(atom '(a b c))", false);
-	assertEqual(5, "(atom 'nil)", true);
+	assertEqual(5, "(atom '())", true);
 	assertEqual(6, "(atom (atom 'a))", true);
 	assertEqual(7, "(atom '(atom 'a))", false);
 	assertEqual(8, "(eq 'a 'a)", true);
 	assertEqual(9, "(eq 'a 'b)", false);
-	assertEqual(10, "(eq 'nil 'nil)", true);
+	assertEqual(10, "(eq '() '())", true);
 	assertEqual(11, "(head '(a b c))", "a");
 	assertEqual(12, "(tail '(a b c))", "(b c)");
 	assertEqual(13, "(cons 'a '(b c))", "(a b c)");
-	assertEqual(14, "(cons 'a (cons 'b (cons 'c 'nil)))", "(a b c)");
-	assertEqual(15, "(cons 'a nil)", "(a)");
-	assertEqual(16, "(cons 'a 'nil)", "(a)");
+	assertEqual(14, "(cons 'a (cons 'b (cons 'c '())))", "(a b c)");
+	assertEqual(15, "(cons 'a ())", "(a)");
+	assertEqual(16, "(cons 'a '())", "(a)");
 	assertEqual(17, "(if (eq 'a 'b) 'first 'second)", "second");
-	assertEqual(18, "(if (eq nil nil) 'first 'second)", "first");
+	assertEqual(18, "(if (eq () ()) 'first 'second)", "first");
 	assertEqual(19, "((lambda (x) (cons x '(b))) 'a)", "(a b)");
 	assertEqual(20, "((lambda (x y) (cons x (tail y))) 'z '(a b c))", "(z b c)");
 	assertEqual(21, "((lambda (f) (f '(b c))) (lambda (x) (cons 'a x)))", "(a b c)");
@@ -37,13 +37,13 @@ function runTests() {
 	assertEqual(25, "(cons :a '(:b :c))", "(:a :b :c)");
 	assertEqual(26, "(eq :a :a)", true);
 	assertEqual(28, "(eq :a :b)", false);
-	assertEqual(29, "`nil", "nil");
-	assertEqual(30, "`~nil", "nil");
-	assertEqual(31, "`(cons 'a nil)", "(cons (quote a) nil)");
-	assertEqual(32, "'(cons 'a nil)", "(cons (quote a) nil)");
-	assertEqual(33, "''(cons 'a nil)", "(quote (cons (quote a) nil))");
+	assertEqual(29, "`()", "()");
+	assertEqual(30, "`~()", "()");
+	assertEqual(31, "`(cons 'a ())", "(cons (quote a) ())");
+	assertEqual(32, "'(cons 'a ())", "(cons (quote a) ())");
+	assertEqual(33, "''(cons 'a ())", "(quote (cons (quote a) ()))");
 	assertEqual(34, "`~'a", "a");
-	assertEqual(35, "`(cons ~(if true 'first 'second) (cons ~(eq 'a 'b) nil))", 
-					"(cons first (cons false nil))");
-	assertEqual(35, "(tail nil)", "nil");
+	assertEqual(35, "`(cons ~(if true 'first 'second) (cons ~(eq 'a 'b) ()))", 
+					"(cons first (cons false ()))");
+	assertEqual(35, "(tail ())", "()");
 }

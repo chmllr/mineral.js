@@ -16,8 +16,6 @@ var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
 
 var mineral = {
 
-	"nil": "nil",
-
 	"quote": function(x) {
 		return x;
 	},
@@ -35,6 +33,7 @@ var mineral = {
 	},
 
 	"tail": function(list) {
+		if(isNIL(list)) throw("Empty list has no tail!");
 		return list.slice(1,list.length);
 	},
 
@@ -94,6 +93,7 @@ function resolve(value, localEnv) {
 }
 
 function evaluate(x, localEnv) {
+	if(isNIL(x)) return [];
 	if (!isList(x)) return resolve(x, localEnv);
 	else {
 		var token = x[0];
@@ -152,7 +152,6 @@ function stringify(code) {
 function normalize(code) {
 	var patterns = [
 		{ "pattern": /;.*[\n\r]/g, "substitution": "" }, // comments
-		{ "pattern": /\(\)/g, "substitution": "nil" }, // () -> nil
 		{ "pattern": /[\s\t\n\r]+/g, "substitution": " " } // whitespace normalization
 	];
 	for(var i in patterns)
