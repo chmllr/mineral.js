@@ -56,6 +56,12 @@ var mineral = {
 		}
 	},
 
+	"macro": function(bindings, exp) {
+		var lambda = mineral.lambda(bindings, exp);
+		lambda["macro"] = true;
+		return lambda;
+	},
+
 	"def": function(name, value) {
 		var localEnv = {};
 		localEnv[name] = function(x) { return mineral[name](x); };
@@ -67,9 +73,9 @@ var mineral = {
 		if(isNIL(args)) return [];
 		if (isList(args)) {
 			var token = args.shift();
-			if(token == sugarMap["~"]) return evaluate(args[0]);
-			var result = (isNIL(args) ? [] : mineral.backquote(args))
-			result.unshift(mineral.backquote(token));
+			if(token == sugarMap["~"]) return evaluate(args[0], localEnv);
+			var result = (isNIL(args) ? [] : mineral.backquote(args, localEnv))
+			result.unshift(mineral.backquote(token, localEnv));
 			return result;
 		}
 		return args;
@@ -82,9 +88,9 @@ var mineral = {
 
 function resolve(value, localEnv) {
 	var result;
-	if (localEnv) {
+	if(localEnv) {
 		result = localEnv[value];
-		if (result != undefined) return result;
+		if(result != undefined) return result;
 	}
 	result = mineral[value];
 	if(result) return result;
@@ -98,10 +104,13 @@ function evaluate(x, localEnv) {
 		var token = x[0];
 		var f = evaluate(token, localEnv);
 		var args = x.slice(1);
-		if(["quote", "backquote", "if", "lambda", "def"].indexOf(token) < 0)
+		if(["quote", "backquote", "if", "lambda", "macro", "def"].indexOf(token) < 0 
+			&& !f.macro)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
 		if(["if", "backquote"].indexOf(token) >= 0) args.push(localEnv);
-		return f.apply(this, args);
+		var result = f.apply(this, args);
+		if(f.macro) return evaluate(result, localEnv);
+		return result;
 	}
 }
 
@@ -166,7 +175,7 @@ function loadFiles() {
     var httpRequest = new XMLHttpRequest();
 	var processText = function() {
 		if (httpRequest.readyState === 4 && httpRequest.status === 200) {
-			var content = "((lambda ()) " + httpRequest.responseText + ")";
+			var content = "((lambda ()) " + normalize(httpRequest.responseText) + ")";
 			evaluate(parse(normalize(content)));
 		}
 	}

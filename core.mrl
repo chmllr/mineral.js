@@ -1,3 +1,1 @@
 ; this file contains all core function of Mineral
-(def x 'a) ;this is just a test
-(def y 'b)
