@@ -44,4 +44,6 @@ function runTests() {
 	assertEqual(35, "`(cons ~(if true 'first 'second) (cons ~(eq 'a 'b) ()))", "(cons first (cons false ()))");
 	assertEqual(36, "((lambda (x y z) (cons y (cons z ()))) (def f (lambda (x) (eq x 'a))) (f 'a) (f 'b))", "(true false)");
 	assertEqual(37, "((macro (x) `(cons ~x '(Z))) 'U)", "(U Z)");
+	assertEqual(38, "((lambda (x y) y) (defmacro mycons (a b) `(cons ~a ~b)) (mycons 'T '(S)))", "(T S)");
+	assertEqual(39, "((lambda (x y) y) (defn mycons (a b) (cons a b)) (mycons 'T '(S)))", "(T S)");
 }

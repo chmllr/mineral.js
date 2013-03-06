@@ -8,9 +8,8 @@
 		`(def ~name
 			(macro ~args ~body))))
 
-; (defmacro
-;	defn args
-;	`(def ~(head args) 
-;		(label
-;			~(head (tail args))
-;			~(tail (tail args)))))
+(def defn
+	(macro 
+		(name args body)
+		`(def ~name
+			(lambda ~args ~body))))
