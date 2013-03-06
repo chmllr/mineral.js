@@ -38,7 +38,6 @@ var mineral = {
 	},
 
 	"cons": function(element, list) {
-		if(list == "nil") return [element];
 		list.unshift(element);
 		return list;
 	},
@@ -85,7 +84,7 @@ function resolve(value, localEnv) {
 	var result;
 	if (localEnv) {
 		result = localEnv[value];
-		if (result) return result;
+		if (result != undefined) return result;
 	}
 	result = mineral[value];
 	if(result) return result;
