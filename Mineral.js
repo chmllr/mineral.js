@@ -29,17 +29,20 @@ var mineral = {
 	},
 
 	"head":  function(list) {
+		if(!isList(list)) throw("The argument of 'head' is not a list!");
 		return list[0];
 	},
 
 	"tail": function(list) {
 		if(isNIL(list)) throw("Empty list has no tail!");
+		if(!isList(list)) throw "The argument of 'tail' is not a list!";
 		return list.slice(1,list.length);
 	},
 
 	"cons": function(element, list) {
-		list.unshift(element);
-		return list;
+		var result = list.slice(0);
+		result.unshift(element);
+		return result;
 	},
 
 	"if": function(guard, thenAction, elseAction, localEnv) {
@@ -56,12 +59,6 @@ var mineral = {
 		}
 	},
 
-	"macro": function(bindings, exp) {
-		var lambda = mineral.lambda(bindings, exp);
-		lambda["macro"] = true;
-		return lambda;
-	},
-
 	"def": function(name, value) {
 		var localEnv = {};
 		localEnv[name] = function(x) { return mineral[name](x); };
@@ -72,6 +69,7 @@ var mineral = {
 	"backquote": function(args, localEnv) {
 		if(isNIL(args)) return [];
 		if (isList(args)) {
+			args = args.slice(0); // avoid destruction
 			var token = args.shift();
 			if(token == sugarMap["~"]) return evaluate(args[0], localEnv);
 			var result = (isNIL(args) ? [] : mineral.backquote(args, localEnv))
@@ -79,6 +77,12 @@ var mineral = {
 			return result;
 		}
 		return args;
+	},
+
+	"macro": function(bindings, exp) {
+		var lambda = mineral.lambda(bindings, exp);
+		lambda["macro"] = true;
+		return lambda;
 	},
 
 	"evaljs": function(string) {

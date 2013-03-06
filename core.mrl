@@ -1,1 +1,16 @@
 ; this file contains all core function of Mineral
+
+; MACROS
+
+(def defmacro
+	(macro 
+		(name args body)
+		`(def ~name
+			(macro ~args ~body))))
+
+; (defmacro
+;	defn args
+;	`(def ~(head args) 
+;		(label
+;			~(head (tail args))
+;			~(tail (tail args)))))

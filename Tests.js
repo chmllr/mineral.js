@@ -6,8 +6,6 @@ function assertEqual (n, input, output) {
 						+ input + "' doesn't produce '" + output + "'");
 }
 
-
-
 function runTests() {
 
 	assertEqual(1, "'a", "a");
