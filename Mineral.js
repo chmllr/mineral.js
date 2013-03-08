@@ -8,6 +8,10 @@ function isNIL(x) {
 	return isList(x) && x.length == 0;
 }
 
+function isString(x) {
+	return typeof x == "string";
+}
+
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
 
 var mineral = {
@@ -90,11 +94,13 @@ var mineral = {
 
 	"jseval": function(string) {
 		return eval(string);
-	}/*,
+	},
 
-	"jsmethodcall": function(method, obj, args) {
-		return mineral.jseval(obj + method).apply(this, args);
-	}*/
+	"jsmethodcall": function() {
+		var args = Array.prototype.slice.call(arguments),
+			method = args[0], obj = args[1], args = args.slice(2);
+		return obj[method].apply(obj, args);
+	}
 }
 
 function resolve(value, localEnv) {
@@ -108,18 +114,17 @@ function resolve(value, localEnv) {
 	return mineral.jseval(value);
 }
 
-function evaluate(x, localEnv) {
-	if(isNIL(x)) return [];
-	if (!isList(x)) return resolve(x, localEnv);
+function evaluate(value, localEnv) {
+	if(isNIL(value)) return [];
+	if (!isList(value)) return resolve(value, localEnv);
 	else {
-		var token = x[0];
-		var args = x.slice(1);
-		/*
-		if(token.charAt(0) == "." && x.length > 1) {
+		var token = value[0];
+		var args = value.slice(1);
+		if(isString(token) && token.charAt(0) == "." && value.length > 1) {
 			token = "jsmethodcall";
-			args = [x[0], x.slice(1)];
+			args = value.slice(1);
+			args.unshift(["quote", value[0].slice(1)]);
 		}
-		*/
 		var f = evaluate(token, localEnv);
 		if(["quote", "backquote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
