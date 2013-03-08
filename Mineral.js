@@ -22,6 +22,10 @@ function fixName(name) {
 	return name;
 }
 
+function isFunction(f) {
+	return typeof f == "function";
+}
+
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
 
 var mineral = {
@@ -101,18 +105,15 @@ var mineral = {
 		var lambda = mineral.lambda(bindings, exp);
 		lambda["macro"] = true;
 		return lambda;
-	},
+	}
+}
 
-	"jseval": function(string) {
-		return eval(string);
-	},
-
-	"jsmethodcall": function() {
+function jsMethodCall(callArgs) {
+	var object = eval(callArgs[0]), method = callArgs[1];
+	return function() {
 		var args = Array.prototype.slice.call(arguments);
-		for(var i in args)
-			if(isMineralString(args[i])) args[i] = args[i].replace(/"/g, '');
-		var method = args[0], obj = args[1], args = args.slice(2);
-		return obj[method].apply(obj, args);
+		for(var i in args) args[i] = eval(args[i]);
+		return object[method].apply(object, args);			
 	}
 }
 
@@ -123,24 +124,25 @@ function resolve(expression, localEnv) {
 		result = localEnv[fixName(expression)];
 		if(result != undefined) return result;
 	}
-	result = mineral[fixName(expression)];
-	if(result) return result;
-	return mineral.jseval(expression);
+	return mineral[fixName(expression)];
 }
 
 function evaluate(value, localEnv) {
 	if(isNIL(value)) return [];
 	if (!isList(value)) return resolve(value, localEnv);
 	else {
-		var token = value[0];
-		var args = value.slice(1);
-		if(isString(token) && token.charAt(0) == "." && value.length > 1) {
-			token = "jsmethodcall";
-			args = value.slice(1);
-			args.unshift(["quote", value[0].slice(1)]);
-		}
-		var f = evaluate(token, localEnv);
-		if(["quote", "backquote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
+		var token = value[0], 
+			jsLocalMethodCall = isString(token) && token.charAt(0) == ".",
+			f = evaluate(token, localEnv), args;
+		if(!f || jsLocalMethodCall) {
+			var jsCall = jsLocalMethodCall // returns [object, method]
+				? [evaluate(value[1], localEnv), value[0].slice(1)]
+				: ["window", token];
+			args = value.slice(jsLocalMethodCall ? 2 : 1);
+			f = jsMethodCall(jsCall);
+		} else args = value.slice(1)
+		if(["quote", "backquote", "if", "lambda", "macro", "def"]
+			.indexOf(token) < 0 && !f.macro)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
 		if(["if", "backquote"].indexOf(token) >= 0) args.push(localEnv);
 		var result = f.apply(this, args);
@@ -216,15 +218,12 @@ function loadFiles() {
 		httpRequest.onerror = function () { console.error("Couldn't load " + fileName); }
 	    httpRequest.open('GET', fileName);
 	    httpRequest.send();
-
 	};
 	var processText = function() {
 		if (httpRequest.readyState === 4 && httpRequest.status === 200) {
 			content += normalize(httpRequest.responseText);
-			if(args.length == fileNr) {
-				content = "((lambda ()) " + content + ")";
-				evaluate(parse(normalize(content)));
-			}
+			if(args.length == fileNr)
+				evaluate(parse(normalize("((lambda ()) " + content + ")")));
 			else loadFile();
 		}
 	};

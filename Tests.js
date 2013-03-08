@@ -46,10 +46,10 @@ function runTests() {
 	assertEqual(36, "(eq (tail '(Z)) ())", true);
 	assertEqual(37, "(reduce (% l e . (cons e l)) () '(A B C))", "(C B A)");
 	assertEqual(38, "(map (% v . (eq v 'X)) '(X Y Z X Q))", "(true false false true false)");
-	assertEqual(39, "(.concat 'AB 'CD)", "ABCD");
+	assertEqual(39, '(.concat "AB" "CD")', '"ABCD"');
 	assertEqual(40, '"test"',  '"test"');
 	assertEqual(41, '(cons "hi" (cons "hey" \'("hello")))',  '("hi" "hey" "hello")');
 	assertEqual(42, '(eq "test" \'test)', false);
-	assertEqual(43, '(str "con" "ca" "te" "na" "tion")', "concatenation");
+	assertEqual(43, '(str "con" "ca" "te" "na" "tion")', '"concatenation"');
 	assertEqual(44, '(eq "test" "test")', true);
 }

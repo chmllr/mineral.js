@@ -27,6 +27,12 @@
 				(tail list))))
 
 (defn
+	reduce-right (f memo list)
+	(if (empty? list)
+		memo
+		(f (head list) (reduce-right f memo (tail list)))))
+
+(defn
 	map (f list)
 	(if (empty? list) 
 		()
@@ -36,8 +42,8 @@
 
 (defn
 	str (& strings)
-	(reduce (% memo string . (.concat memo string)) 
-			""
+	(reduce-right (% string memo . (cons string memo))
+			()
 			strings))
 
 (defn
