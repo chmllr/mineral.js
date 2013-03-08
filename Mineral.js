@@ -12,6 +12,10 @@ function isString(x) {
 	return typeof x == "string";
 }
 
+function isMineralString(x) {
+	return isString(x) && x.match(/^"[^"]*"$/);
+}
+
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
 
 var mineral = {
@@ -97,14 +101,16 @@ var mineral = {
 	},
 
 	"jsmethodcall": function() {
-		var args = Array.prototype.slice.call(arguments),
-			method = args[0], obj = args[1], args = args.slice(2);
+		var args = Array.prototype.slice.call(arguments);
+		for(var i in args)
+			if(isMineralString(args[i])) args[i] = args[i].replace(/"/g, '');
+		var method = args[0], obj = args[1], args = args.slice(2);
 		return obj[method].apply(obj, args);
 	}
 }
 
 function resolve(value, localEnv) {
-	if(value && value.match(/^"[^"]*"$/)) return { "string": value };
+	if(isMineralString(value)) return value;
 	var result;
 	if(localEnv) {
 		result = localEnv[value];
@@ -173,7 +179,7 @@ function parse(code) {
 }
 
 function stringify(code) {
-	if(!isList(code)) return code.string ? code.string : code;
+	if(!isList(code)) return code;
 	var output = "";
 	for(var i in code) output += stringify(code[i]) + " ";
 	return "(" + output.substring(0, output.length-1) + ")";
