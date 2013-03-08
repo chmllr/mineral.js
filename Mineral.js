@@ -78,6 +78,7 @@ var mineral = {
 
 	"def": function(name, value) {
 		var localEnv = {};
+		name = fixName(name);
 		localEnv[name] = function(x) { return mineral[name](x); };
 		mineral[name] = evaluate(value, localEnv);
 		return mineral[name];
@@ -116,13 +117,13 @@ var mineral = {
 }
 
 function resolve(expression, localEnv) {
-	if(isMineralString(expression)) return expression;
+	if(!expression || isMineralString(expression)) return expression;
 	var result;
 	if(localEnv) {
-		result = localEnv[expression];
+		result = localEnv[fixName(expression)];
 		if(result != undefined) return result;
 	}
-	result = mineral[expression];
+	result = mineral[fixName(expression)];
 	if(result) return result;
 	return mineral.jseval(expression);
 }
@@ -167,10 +168,8 @@ function tokenize(code, memo, pos) {
 			if(code.charAt(pos) == ")") brackets--;
 		}
 		result = tokenize(code.substring(oldPos+1, pos), [], 0);
-	} else {
+	} else
 		while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
-		result = fixName(result);
-	}
 	if(sugared)
 		for(var i in ops)
 			result = [ops[i], result];
@@ -210,18 +209,25 @@ function interpret(input) {
 }
 
 function loadFiles() {
-	var httpRequest = new XMLHttpRequest();
-	var processText = function() {
-		if (httpRequest.readyState === 4 && httpRequest.status === 200) {
-			var content = "((lambda ()) " + normalize(httpRequest.responseText) + ")";
-			evaluate(parse(normalize(content)));
-		}
-	}
-	httpRequest.onreadystatechange = processText;
-	for(var i = 0; i < arguments.length; i++) {
-		var fileName = arguments[i];
+	var httpRequest = new XMLHttpRequest(), content = "", args = arguments, fileNr = 0;
+	var loadFile = function() {
+		var fileName = args[fileNr++];
+		console.log("Loading " + fileName + "...");
 		httpRequest.onerror = function () { console.error("Couldn't load " + fileName); }
 	    httpRequest.open('GET', fileName);
 	    httpRequest.send();
-	}
+
+	};
+	var processText = function() {
+		if (httpRequest.readyState === 4 && httpRequest.status === 200) {
+			content += normalize(httpRequest.responseText);
+			if(args.length == fileNr) {
+				content = "((lambda ()) " + content + ")";
+				evaluate(parse(normalize(content)));
+			}
+			else loadFile();
+		}
+	};
+	httpRequest.onreadystatechange = processText;
+	loadFile();
 }

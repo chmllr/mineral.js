@@ -51,4 +51,5 @@ function runTests() {
 	assertEqual(41, '(cons "hi" (cons "hey" \'("hello")))',  '("hi" "hey" "hello")');
 	assertEqual(42, '(eq "test" \'test)', false);
 	assertEqual(43, '(str "con" "ca" "te" "na" "tion")', "concatenation");
+	assertEqual(44, '(eq "test" "test")', true);
 }
