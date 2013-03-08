@@ -49,4 +49,5 @@ function runTests() {
 	assertEqual(39, "(.concat 'AB 'CD)", "ABCD");
 	assertEqual(40, '"test"',  '"test"');
 	assertEqual(41, '(cons "hi" (cons "hey" \'("hello")))',  '("hi" "hey" "hello")');
+	assertEqual(42, '(eq "test" \'test)', false);
 }

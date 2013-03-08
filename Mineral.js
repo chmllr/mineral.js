@@ -104,7 +104,7 @@ var mineral = {
 }
 
 function resolve(value, localEnv) {
-	if(value && value.match(/^"[^"]*"$/)) return value;
+	if(value && value.match(/^"[^"]*"$/)) return { "string": value };
 	var result;
 	if(localEnv) {
 		result = localEnv[value];
@@ -173,7 +173,7 @@ function parse(code) {
 }
 
 function stringify(code) {
-	if(!isList(code)) return code;
+	if(!isList(code)) return code.string ? code.string : code;
 	var output = "";
 	for(var i in code) output += stringify(code[i]) + " ";
 	return "(" + output.substring(0, output.length-1) + ")";
