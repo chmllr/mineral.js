@@ -13,3 +13,23 @@
 		(name args body)
 		`(def ~name
 			(lambda ~args ~body))))
+
+(defn empty?
+	(list)
+	(eq list ()))
+
+(defn
+	reduce (f memo list)
+	(if (empty? list)
+		memo
+		(reduce f
+				(f memo (head list))
+				(tail list))))
+
+(defn
+	map (f list)
+	(if (empty? list) 
+		()
+		(cons
+			(f (head list))
+			(map f (tail list)))))

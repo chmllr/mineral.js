@@ -88,9 +88,13 @@ var mineral = {
 		return lambda;
 	},
 
-	"evaljs": function(string) {
+	"jseval": function(string) {
 		return eval(string);
-	}
+	}/*,
+
+	"jsmethodcall": function(method, obj, args) {
+		return mineral.jseval(obj + method).apply(this, args);
+	}*/
 }
 
 function resolve(value, localEnv) {
@@ -101,7 +105,7 @@ function resolve(value, localEnv) {
 	}
 	result = mineral[value];
 	if(result) return result;
-	return mineral.evaljs(value);
+	return mineral.jseval(value);
 }
 
 function evaluate(x, localEnv) {
@@ -109,10 +113,15 @@ function evaluate(x, localEnv) {
 	if (!isList(x)) return resolve(x, localEnv);
 	else {
 		var token = x[0];
-		var f = evaluate(token, localEnv);
 		var args = x.slice(1);
-		if(["quote", "backquote", "if", "lambda", "macro", "def"].indexOf(token) < 0 
-			&& !f.macro)
+		/*
+		if(token.charAt(0) == "." && x.length > 1) {
+			token = "jsmethodcall";
+			args = [x[0], x.slice(1)];
+		}
+		*/
+		var f = evaluate(token, localEnv);
+		if(["quote", "backquote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
 			for(var i in args) args[i] = evaluate(args[i], localEnv);
 		if(["if", "backquote"].indexOf(token) >= 0) args.push(localEnv);
 		var result = f.apply(this, args);
@@ -166,8 +175,10 @@ function stringify(code) {
 
 function normalize(code) {
 	var patterns = [
+		// TODO: delete until the line end and not certain whitespace!
 		{ "pattern": /;.*[\n\r]/g, "substitution": "" }, // comments
-		{ "pattern": /[\s\t\n\r]+/g, "substitution": " " } // whitespace normalization
+		{ "pattern": /[\s\t\n\r]+/g, "substitution": " " }, // whitespace normalization
+		{ "pattern": /%(.*?)?\./g, "substitution": "lambda ($1)" } // lambda sugar
 	];
 	for(var i in patterns)
 		code = code.replace(patterns[i].pattern, patterns[i].substitution);
