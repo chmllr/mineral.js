@@ -33,3 +33,9 @@
 		(cons
 			(f (head list))
 			(map f (tail list)))))
+
+(defn
+	str (& strings)
+	(reduce (% memo string . (.concat memo string)) 
+			""
+			strings))
