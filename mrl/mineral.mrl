@@ -39,3 +39,11 @@
 	(reduce (% memo string . (.concat memo string)) 
 			""
 			strings))
+
+(defn
+	console-log (string)
+	(.log console string))
+
+(defn
+	console-error (string)
+	(.error console string))

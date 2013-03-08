@@ -16,6 +16,12 @@ function isMineralString(x) {
 	return isString(x) && x.match(/^"[^"]*"$/);
 }
 
+function fixName(name) {
+	if(name.indexOf("-") >= 0) return name.replace(/-/g, "_");
+	else if(name.indexOf("_") >= 0) return name.replace(/_/g, "-");
+	return name;
+}
+
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
 
 var mineral = {
@@ -109,16 +115,16 @@ var mineral = {
 	}
 }
 
-function resolve(value, localEnv) {
-	if(isMineralString(value)) return value;
+function resolve(expression, localEnv) {
+	if(isMineralString(expression)) return expression;
 	var result;
 	if(localEnv) {
-		result = localEnv[value];
+		result = localEnv[expression];
 		if(result != undefined) return result;
 	}
-	result = mineral[value];
+	result = mineral[expression];
 	if(result) return result;
-	return mineral.jseval(value);
+	return mineral.jseval(expression);
 }
 
 function evaluate(value, localEnv) {
@@ -161,8 +167,10 @@ function tokenize(code, memo, pos) {
 			if(code.charAt(pos) == ")") brackets--;
 		}
 		result = tokenize(code.substring(oldPos+1, pos), [], 0);
-	} else
+	} else {
 		while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
+		result = fixName(result);
+	}
 	if(sugared)
 		for(var i in ops)
 			result = [ops[i], result];
