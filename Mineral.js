@@ -104,6 +104,7 @@ var mineral = {
 }
 
 function resolve(value, localEnv) {
+	if(value && value.match(/^"[^"]*"$/)) return value;
 	var result;
 	if(localEnv) {
 		result = localEnv[value];
