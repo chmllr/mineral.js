@@ -47,10 +47,17 @@ var mineral = {
 	},
 
 	"lambda": function(bindings, exp) {
+		var optionalArgsSep = bindings.indexOf("&"), optionalBinding;
+		if(optionalArgsSep >= 0 && bindings.length > optionalArgsSep+1) {
+			optionalBinding = bindings[optionalArgsSep+1];
+			bindings = bindings.slice(0,optionalArgsSep);
+		}
 		return function() {
-			var args = Array.prototype.slice.call(arguments).slice(0, bindings.length);
+			var args = Array.prototype.slice.call(arguments);
 			var localEnv = {};
-			for (var i in args) localEnv[bindings[i]] = args[i];
+			for (var i in bindings) localEnv[bindings[i]] = args[i];
+			if(optionalArgsSep >= 0)
+				localEnv[optionalBinding] = args.slice(bindings.length);
 			return evaluate(exp, localEnv);
 		}
 	},
@@ -172,14 +179,14 @@ function interpret(input) {
 }
 
 function loadFiles() {
-    var httpRequest = new XMLHttpRequest();
+	var httpRequest = new XMLHttpRequest();
 	var processText = function() {
 		if (httpRequest.readyState === 4 && httpRequest.status === 200) {
 			var content = "((lambda ()) " + normalize(httpRequest.responseText) + ")";
 			evaluate(parse(normalize(content)));
 		}
 	}
-    httpRequest.onreadystatechange = processText;
+	httpRequest.onreadystatechange = processText;
 	for(var i = 0; i < arguments.length; i++) {
 		var fileName = arguments[i];
 		httpRequest.onerror = function () { console.error("Couldn't load " + fileName); }
