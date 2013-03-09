@@ -28,6 +28,8 @@ function isFunction(f) {
 
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
 
+var enclosureMap = { '(' : ')', '"' : '"' };
+
 var mineral = {
 
 	"quote": function(x) {
@@ -161,16 +163,18 @@ function tokenize(code, memo, pos) {
 		current = code.charAt(++pos);
 		sugared = true;
 	}
-	if(current == ")") throwSyntaxError(pos);
-	if(current == "(") {
-		var brackets = 1, oldPos = pos;
-		while(brackets > 0) {
+	if(current == ")") throwSyntaxError(pos, code);
+	if(Object.keys(enclosureMap).indexOf(current) >= 0) {
+		var enclosures = 1, oldPos = pos, opener = current, closer = enclosureMap[current];
+		while(enclosures > 0) {
 			pos++;
-			if(brackets < 0 || pos == code.length) throwSyntaxError(pos);
-			if(code.charAt(pos) == "(") brackets++;
-			if(code.charAt(pos) == ")") brackets--;
+			if(enclosures < 0 || pos == code.length) throwSyntaxError(pos, code);
+			if(opener != closer && code.charAt(pos) == opener) enclosures++;
+			if(code.charAt(pos) == closer) enclosures--;
 		}
-		result = tokenize(code.substring(oldPos+1, pos), [], 0);
+		result = opener == "(" 
+			? tokenize(code.substring(oldPos+1, pos), [], 0)
+			: opener + code.substring(oldPos+1, pos) + closer;
 	} else
 		while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
 	if(sugared)
@@ -180,8 +184,8 @@ function tokenize(code, memo, pos) {
 	return tokenize(code, memo, pos+1);
 }
 
-function throwSyntaxError(pos) {
-	throw("Syntax error at position " + pos);
+function throwSyntaxError(pos, code) {
+	throw("Syntax error at position " + pos + ": " + code);
 }
 
 function parse(code) {
