@@ -42,8 +42,8 @@
 
 (defn
 	str (& strings)
-	(reduce-right (% string memo . (cons string memo))
-			()
+	(reduce-right (% string memo . (.concat string memo))
+			""
 			strings))
 
 (defn

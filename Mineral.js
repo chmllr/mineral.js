@@ -105,15 +105,13 @@ var mineral = {
 		var lambda = mineral.lambda(bindings, exp);
 		lambda["macro"] = true;
 		return lambda;
-	}
-}
+	},
 
-function jsMethodCall(callArgs) {
-	var object = eval(callArgs[0]), method = callArgs[1];
-	return function() {
+	"externalcall": function(callArgs) {
 		var args = Array.prototype.slice.call(arguments);
 		for(var i in args) args[i] = eval(args[i]);
-		return object[method].apply(object, args);			
+		var object = args[0], method = args[1], args = args.slice(2);
+		return JSON.stringify(object[method].apply(object, args));
 	}
 }
 
@@ -132,14 +130,15 @@ function evaluate(value, localEnv) {
 	if (!isList(value)) return resolve(value, localEnv);
 	else {
 		var token = value[0], 
-			jsLocalMethodCall = isString(token) && token.charAt(0) == ".",
+			localMethodCall = isString(token) && token.charAt(0) == ".",
 			f = evaluate(token, localEnv), args;
-		if(!f || jsLocalMethodCall) {
-			var jsCall = jsLocalMethodCall // returns [object, method]
-				? [evaluate(value[1], localEnv), value[0].slice(1)]
+		if(!f || localMethodCall) {
+			args = localMethodCall
+				? [value[1], value[0].slice(1)]
 				: ["window", token];
-			args = value.slice(jsLocalMethodCall ? 2 : 1);
-			f = jsMethodCall(jsCall);
+			args[1] = JSON.stringify(args[1]);
+			args = args.concat(value.slice(localMethodCall ? 2 : 1));
+			f = evaluate("externalcall", localEnv);
 		} else args = value.slice(1)
 		if(["quote", "backquote", "if", "lambda", "macro", "def"]
 			.indexOf(token) < 0 && !f.macro)
