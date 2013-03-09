@@ -107,7 +107,7 @@ var mineral = {
 		return lambda;
 	},
 
-	"externalcall": function(callArgs) {
+	"externalcall": function() {
 		var args = Array.prototype.slice.call(arguments);
 		for(var i in args) args[i] = eval(args[i]);
 		var object = args[0], method = args[1], args = args.slice(2);
@@ -133,10 +133,12 @@ function evaluate(value, localEnv) {
 			localMethodCall = isString(token) && token.charAt(0) == ".",
 			f = evaluate(token, localEnv), args;
 		if(!f || localMethodCall) {
-			args = localMethodCall
-				? [value[1], value[0].slice(1)]
-				: ["window", token];
-			args[1] = JSON.stringify(args[1]);
+			var object = "window";
+			if(localMethodCall) {
+				object = evaluate(value[1], localEnv);
+				object = object ? object : value[1];
+			}
+			args = [["quote", object], JSON.stringify(localMethodCall ? value[0].slice(1) : token)];
 			args = args.concat(value.slice(localMethodCall ? 2 : 1));
 			f = evaluate("externalcall", localEnv);
 		} else args = value.slice(1)
