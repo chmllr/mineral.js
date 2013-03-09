@@ -10,14 +10,14 @@ function runTests() {
 
 	assertEqual(1, "'a", "a");
 	assertEqual(2, "'(a b c)", "(a b c)");
-	assertEqual(3, "(atom 'a)", true);
-	assertEqual(4, "(atom '(a b c))", false);
-	assertEqual(5, "(atom '())", true);
-	assertEqual(6, "(atom (atom 'a))", true);
-	assertEqual(7, "(atom '(atom 'a))", false);
-	assertEqual(8, "(eq 'a 'a)", true);
-	assertEqual(9, "(eq 'a 'b)", false);
-	assertEqual(10, "(eq '() '())", true);
+	assertEqual(3, "(atom 'a)", "true");
+	assertEqual(4, "(atom '(a b c))", "false");
+	assertEqual(5, "(atom '())", "true");
+	assertEqual(6, "(atom (atom 'a))", "true");
+	assertEqual(7, "(atom '(atom 'a))", "false");
+	assertEqual(8, "(eq 'a 'a)", "true");
+	assertEqual(9, "(eq 'a 'b)", "false");
+	assertEqual(10, "(eq '() '())", "true");
 	assertEqual(11, "(head '(a b c))", "a");
 	assertEqual(12, "(tail '(a b c))", "(b c)");
 	assertEqual(13, "(cons 'a '(b c))", "(a b c)");
@@ -43,13 +43,13 @@ function runTests() {
 	assertEqual(33, "((% x y . y) (defn mycons (a b) (cons a b)) (mycons 'T '(S)))", "(T S)");
 	assertEqual(34, "((% x y . y) (defn f (a b & more) (cons a more)) (f 'X 'Y 'W 'O 'W))", "(X W O W)");
 	assertEqual(35, "((% x y . y) (defn f (& opt) (cons 'OPTIONAL-ARGS opt)) (f 'X 'Y 'W 'O 'W))", "(OPTIONAL-ARGS X Y W O W)");
-	assertEqual(36, "(eq (tail '(Z)) ())", true);
+	assertEqual(36, "(eq (tail '(Z)) ())", "true");
 	assertEqual(37, "(reduce (% l e . (cons e l)) () '(A B C))", "(C B A)");
 	assertEqual(38, "(map (% v . (eq v 'X)) '(X Y Z X Q))", "(true false false true false)");
 	assertEqual(39, '(.concat "AB" "CD")', '"ABCD"');
 	assertEqual(40, '"test"',  '"test"');
 	assertEqual(41, '(cons "hi" (cons "hey" \'("hello")))',  '("hi" "hey" "hello")');
-	assertEqual(42, '(eq "test" \'test)', false);
+	assertEqual(42, '(eq "test" \'test)', "false");
 	assertEqual(43, '(str "con" "ca" "te" "na" "tion")', '"concatenation"');
-	assertEqual(44, '(eq "test" "test")', true);
+	assertEqual(44, '(eq "test" "test")', "true");
 }

@@ -13,7 +13,7 @@ function isString(x) {
 }
 
 function isMineralString(x) {
-	return isString(x) && x.match(/^"[^"]*"$/);
+	return isString(x) && x.match(/^"([^"]|\\")*"$/);
 }
 
 function fixName(name) {
@@ -114,7 +114,10 @@ var mineral = {
 		for(var i in args) args[i] = eval(args[i]);
 		var object = args[0], method = args[1], args = args.slice(2);
 		return JSON.stringify(object[method].apply(object, args));
-	}
+	},
+
+	"true": true,
+	"false": false
 }
 
 function resolve(expression, localEnv) {
@@ -169,8 +172,13 @@ function tokenize(code, memo, pos) {
 		while(enclosures > 0) {
 			pos++;
 			if(enclosures < 0 || pos == code.length) throwSyntaxError(pos, code);
-			if(opener != closer && code.charAt(pos) == opener) enclosures++;
-			if(code.charAt(pos) == closer) enclosures--;
+			current = code.charAt(pos);
+			if(current == "\\") {
+				pos++;
+				continue;
+			}
+			else if(opener != closer && current == opener) enclosures++;
+			else if(current == closer) enclosures--;
 		}
 		result = opener == "(" 
 			? tokenize(code.substring(oldPos+1, pos), [], 0)
@@ -193,7 +201,7 @@ function parse(code) {
 }
 
 function stringify(code) {
-	if(!isList(code)) return code;
+	if(!isList(code)) return code + "";
 	var output = "";
 	for(var i in code) output += stringify(code[i]) + " ";
 	return "(" + output.substring(0, output.length-1) + ")";
