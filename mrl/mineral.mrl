@@ -14,6 +14,12 @@
 		`(def ~name
 			(lambda ~args ~body))))
 
+; LISTS
+
+(defn second (list) (head (tail list)))
+
+(defn third (list) (head (tail (tail list))))
+
 (defn empty?
 	(list)
 	(eq list ()))
@@ -40,9 +46,12 @@
 			(f (head list))
 			(map f (tail list)))))
 
+; STRINGS
+
 (defn
 	str (& strings)
-	(reduce-right (% string memo . (.concat string memo))
+	(reduce-right 
+			(% elem memo . (.concat (stringify elem) memo))
 			""
 			strings))
 
