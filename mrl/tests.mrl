@@ -58,12 +58,12 @@
         "50" "((% l . (id (head l))) '('A))" "(quote A)"
         "50" "(let (x 'A) x)" "A"
         "51" "(let (x 'A y ()) (cons x y))" "(A)"
+        "52" "(last '(a b c d e f g))" "g"
         ))
 
 (defn process-tests (tests)
     (if (empty? tests) "All tests executed."
-        ((% assertion next . next)
-            (assert-equal (head tests) (second tests) (third tests))
+        (do (assert-equal (head tests) (second tests) (third tests))
             (process-tests (tail (tail (tail tests)))))))
 
 (defn run-test ()

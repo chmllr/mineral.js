@@ -81,9 +81,9 @@ var mineral = {
         var lambda = function() {
             var args = Array.prototype.slice.call(arguments), localEnv = args.pop();
             localEnv = localEnv ? localEnv : {};
-            for (var i in bindings) localEnv[bindings[i]] = args[i];
+            for (var i in bindings) localEnv[fixName(bindings[i])] = args[i];
             if(optionalArgsSep >= 0)
-                localEnv[optionalBinding] = args.slice(bindings.length);
+                localEnv[fixName(optionalBinding)] = args.slice(bindings.length);
             return evaluate(exp, localEnv);
         };
         lambda["lambda"] = true;

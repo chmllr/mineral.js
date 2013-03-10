@@ -34,6 +34,11 @@
 
 (defn third (list) (head (tail (tail list))))
 
+(defn last (l)
+    (let (elem (head l)
+          rest (tail l))
+        (if (empty? rest) elem (last rest))))
+
 (defn empty?
     (list)
     (eq list ()))
@@ -80,3 +85,6 @@
 ; VARIOUS
 
 (def id (% x . x))
+
+(defn do
+    (& statements))
