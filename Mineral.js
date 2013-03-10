@@ -26,6 +26,12 @@ function isFunction(f) {
     return typeof f == "function";
 }
 
+function clone(object) {
+    var clone = {};
+    for(var key in object) clone[key] = object[key];
+    return clone;
+}
+
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
 
 var enclosureMap = { '(' : ')', '"' : '"' };
@@ -45,13 +51,13 @@ var mineral = {
     },
 
     "head":  function(list) {
-        if(!isList(list)) throw("The argument of 'head' is not a list!");
+        if(!isList(list)) throw("Exception in 'head': " + list + " is not a list!");
         return list[0];
     },
 
     "tail": function(list) {
         if(isNIL(list)) throw("Empty list has no tail!");
-        if(!isList(list)) throw "The argument of 'tail' is not a list!";
+        if(!isList(list)) throw "Exception in 'tail': " + list + " is not a list!";
         return list.slice(1,list.length);
     },
 
@@ -72,27 +78,29 @@ var mineral = {
             optionalBinding = bindings[optionalArgsSep+1];
             bindings = bindings.slice(0,optionalArgsSep);
         }
-        return function() {
-            var args = Array.prototype.slice.call(arguments);
-            var localEnv = {};
+        var lambda = function() {
+            var args = Array.prototype.slice.call(arguments), localEnv = args.pop();
+            localEnv = localEnv ? localEnv : {};
             for (var i in bindings) localEnv[bindings[i]] = args[i];
-                if(optionalArgsSep >= 0)
-                    localEnv[optionalBinding] = args.slice(bindings.length);
-                return evaluate(exp, localEnv);
-            }
-        },
+            if(optionalArgsSep >= 0)
+                localEnv[optionalBinding] = args.slice(bindings.length);
+            return evaluate(exp, localEnv);
+        };
+        lambda["lambda"] = true;
+        return lambda;
+    },
 
-        "def": function(name, value) {
-            var localEnv = {};
-            name = fixName(name);
-            localEnv[name] = function(x) { return mineral[name](x); };
-            mineral[name] = evaluate(value, localEnv);
-            return mineral[name];
-        },
+    "def": function(name, value) {
+        var localEnv = {};
+        name = fixName(name);
+        localEnv[name] = function(x) { return mineral[name](x); };
+        mineral[name] = evaluate(value, localEnv);
+        return mineral[name];
+    },
 
-        "backquote": function(args, localEnv) {
-            if(isNIL(args)) return [];
-            if (isList(args)) {
+    "backquote": function(args, localEnv) {
+        if(isNIL(args)) return [];
+        if (isList(args)) {
             args = args.slice(0); // avoid destruction
             var token = args.shift();
             if(token == sugarMap["~"]) return evaluate(args[0], localEnv);
@@ -107,6 +115,11 @@ var mineral = {
         var lambda = mineral.lambda(bindings, exp);
         lambda["macro"] = true;
         return lambda;
+    },
+
+    "apply": function(f, args, localEnv){
+        if(f.lambda) args.push(localEnv);
+        return f.apply(this, args);
     },
 
     "externalcall": function() {
@@ -131,6 +144,7 @@ function resolve(expression, localEnv) {
 }
 
 function evaluate(value, localEnv) {
+    localEnv = clone(localEnv);
     if(isNIL(value)) return [];
     if (!isList(value)) return resolve(value, localEnv);
     else {
@@ -147,12 +161,12 @@ function evaluate(value, localEnv) {
             args = args.concat(value.slice(localMethodCall ? 2 : 1));
             f = evaluate("externalcall", localEnv);
         } else args = value.slice(1)
-        if(["quote", "backquote", "if", "lambda", "macro", "def"]
-            .indexOf(token) < 0 && !f.macro)
+        if(["quote", "backquote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
             for(var i in args) args[i] = evaluate(args[i], localEnv);
-                if(["if", "backquote"].indexOf(token) >= 0) args.push(localEnv);
+        if(["if", "backquote", "apply"].indexOf(token) >= 0 || f.lambda) args.push(localEnv);
         var result = f.apply(this, args);
-        if(f.macro) return evaluate(result, localEnv);
+        if(f.macro) 
+            return evaluate(result, localEnv);
         return result;
     }
 }
