@@ -148,9 +148,9 @@ function evaluate(value, localEnv) {
     if(isNIL(value)) return [];
     if (!isList(value)) return resolve(value, localEnv);
     else {
-        var token = value[0], 
-        localMethodCall = isString(token) && token.charAt(0) == ".",
-        f = evaluate(token, localEnv), args;
+        var token = value[0], args = value.slice(1), 
+            localMethodCall = isString(token) && token.charAt(0) == ".",
+            f = evaluate(token, localEnv);
         if(!f || localMethodCall) {
             var object = "window";
             if(localMethodCall) {
@@ -160,7 +160,7 @@ function evaluate(value, localEnv) {
             args = [["quote", object], JSON.stringify(localMethodCall ? value[0].slice(1) : token)];
             args = args.concat(value.slice(localMethodCall ? 2 : 1));
             f = evaluate("externalcall", localEnv);
-        } else args = value.slice(1)
+        }
         if(["quote", "backquote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
             for(var i in args) args[i] = evaluate(args[i], localEnv);
         if(["if", "backquote", "apply"].indexOf(token) >= 0 || f.lambda) args.push(localEnv);

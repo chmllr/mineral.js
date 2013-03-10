@@ -16,7 +16,7 @@
 
 (defmacro let
     (args exp)
-    ((% bindings values . `(apply (lambda ~bindings ~exp) '~values))
+    ((% bindings values . `(apply (lambda ~bindings ~exp) ~values))
         ((% x y . y)
             ; TODO: remove def f!!!
             (defn f (op list)
@@ -24,9 +24,11 @@
                     (cons (op list) 
                           (f op (tail (tail list))))))
             (f head args))
-            (f second args)))
+            (cons 'list (f second args))))
 
 ; LISTS
+
+(defn list (& items) items)
 
 (defn second (list) (head (tail list)))
 
@@ -74,3 +76,7 @@
 (defn
     console-error (string)
     (.error console string))
+
+; VARIOUS
+
+(def id (% x . x))

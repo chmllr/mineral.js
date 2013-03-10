@@ -50,11 +50,12 @@
         "42" "(eq \"test\" 'test)" "false"
         "43" "(str \"con\" \"ca\" \"te\" \"na\" \"tion\")" "\"concatenation\""
         "44" "(eq \"test\" \"test\")" "true"
-        "45" "(apply cons '(Z ()))" "(Z)"
+        "45" "(apply (% x y z . (cons x (cons y z))) '(a b ()))" "(a b)"
         "46" "(apply str '(true false \"test\"))" "\"truefalsetest\""
         "47" "((% x . ((% y . x))) 'Z)" "Z"
         "48" "(apply (% x y . x) '(T F))" "T"
         "49" "(apply (% x y . y) '(T F))" "F"
+        "50" "((% l . (id (head l))) '('A))" "(quote A)"
         "50" "(let (x 'A) x)" "A"
         "51" "(let (x 'A y ()) (cons x y))" "(A)"
         ))
