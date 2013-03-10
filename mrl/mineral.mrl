@@ -16,15 +16,13 @@
 
 (defmacro let
     (args exp)
-    ((% bindings values . `(apply (lambda ~bindings ~exp) ~values))
-        ((% x y . y)
-            ; TODO: remove def f!!!
-            (defn f (op list)
+    (apply 
+        (% bindings values . `(apply (lambda ~bindings ~exp) ~values))
+        ((% f . (list (f head args) (cons 'list (f second args))))
+            (% op list .
                 (if (empty? list) () 
                     (cons (op list) 
-                          (f op (tail (tail list))))))
-            (f head args))
-            (cons 'list (f second args))))
+                          (f op (tail (tail list)))))))))
 
 ; LISTS
 
@@ -87,4 +85,5 @@
 (def id (% x . x))
 
 (defn do
-    (& statements))
+    (& statements)
+        (last statements))
