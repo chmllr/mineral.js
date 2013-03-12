@@ -111,12 +111,6 @@ var mineral = {
         return args;
     },
 
-    "macro": function(bindings, exp) {
-        var lambda = mineral.lambda(bindings, exp);
-        lambda["macro"] = true;
-        return lambda;
-    },
-
     "apply": function(f, args, localEnv){
         if(f.lambda) args.push(localEnv);
         return f.apply(this, args);
@@ -148,9 +142,12 @@ function evaluate(value, localEnv) {
     if(isNIL(value)) return [];
     if (!isList(value)) return resolve(value, localEnv);
     else {
-        var token = value[0], args = value.slice(1), 
-            localMethodCall = isString(token) && token.charAt(0) == ".",
-            f = evaluate(token, localEnv);
+        var token = value[0], args = value.slice(1), macro = false;
+        if(token == "macro") {
+            macro = true;
+            token = "lambda";
+        }
+        var localMethodCall = isString(token) && token.charAt(0) == ".", f = evaluate(token, localEnv);
         if(!f || localMethodCall) {
             var object = "window";
             if(localMethodCall) {
@@ -165,9 +162,8 @@ function evaluate(value, localEnv) {
             for(var i in args) args[i] = evaluate(args[i], localEnv);
         if(["if", "backquote", "apply"].indexOf(token) >= 0 || f.lambda) args.push(localEnv);
         var result = f.apply(this, args);
-        if(f.macro) 
-            return evaluate(result, localEnv);
-        return result;
+        if(macro) result["macro"] = macro;
+        return f.macro ? evaluate(result, localEnv) : result;
     }
 }
 
