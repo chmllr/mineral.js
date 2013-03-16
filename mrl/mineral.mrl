@@ -1,4 +1,4 @@
-; this file contains all core function of Mineral
+; this file contains all core functions of Mineral
 
 ; MACROS
 
@@ -68,17 +68,17 @@
 (defn
     str (& strings)
     (reduce-right 
-        (% elem memo . (.concat (stringify elem) memo))
+        (% elem memo . (.concat (js/stringify elem) memo))
         ""
         strings))
 
 (defn
     console-log (string)
-    (.log console string))
+    (.log js/console string))
 
 (defn
     console-error (string)
-    (.error console string))
+    (.error js/console string))
 
 ; VARIOUS
 

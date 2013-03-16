@@ -15,3 +15,9 @@ Mineral.js is a yet another Lisp on JS started as an exercise after reading "The
  - `car` is `head`
  - `cdr` is `tail`
  - `label` is `def`
+
+ ## Interoperability with JS
+
+ - every reference to JS objects and top level function should be qualified with a "js/" prefix:
+    - `(js/alert "hello world!")`
+    - `(.log js/console "hello world!")`

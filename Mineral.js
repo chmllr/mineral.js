@@ -16,7 +16,13 @@ function isMineralString(x) {
     return isString(x) && x.match(/^"([^"]|\\")*"$/);
 }
 
+function isJSReference(x) {
+    return isString(x) && x.indexOf("js/") == 0;
+} 
+
 function fixName(name) {
+    if (name == undefined)
+        console.log("oops");
     if(name.indexOf("-") >= 0) return name.replace(/-/g, "_");
     else if(name.indexOf("_") >= 0) return name.replace(/_/g, "-");
     return name;
@@ -119,7 +125,7 @@ var mineral = {
     "externalcall": function() {
         var args = Array.prototype.slice.call(arguments);
         for(var i in args) args[i] = eval(args[i]);
-            var object = args[0], method = args[1], args = args.slice(2);
+        var object = args[0], method = args[1], args = args.slice(2);
         return JSON.stringify(object[method].apply(object, args));
     },
 
@@ -127,14 +133,18 @@ var mineral = {
     "false": false
 }
 
-function resolve(expression, localEnv) {
-    if(!expression || isMineralString(expression)) return expression;
+function resolve(atom, localEnv) {
+    if(atom == undefined || isMineralString(atom)) return atom;
+    if(isJSReference(atom)) return atom.slice(3);
     var result;
     if(localEnv) {
-        result = localEnv[fixName(expression)];
+        result = localEnv[fixName(atom)];
         if(result != undefined) return result;
     }
-    return mineral[fixName(expression)];
+    result = mineral[fixName(atom)];
+    if(atom != undefined && result == undefined)
+        throw("The identifier " + atom + " can't be resolved.");
+    return result;
 }
 
 function evaluate(value, localEnv) {
@@ -147,17 +157,14 @@ function evaluate(value, localEnv) {
             macro = true;
             token = "lambda";
         }
-        var localMethodCall = isString(token) && token.charAt(0) == ".", f = evaluate(token, localEnv);
-        if(!f || localMethodCall) {
-            var object = "window";
-            if(localMethodCall) {
-                object = evaluate(value[1], localEnv);
-                object = object ? object : value[1];
-            }
-            args = [["quote", object], JSON.stringify(localMethodCall ? value[0].slice(1) : token)];
+        var localMethodCall = isString(token) && token.charAt(0) == ".";
+        if(localMethodCall || isJSReference(token)) {
+            var object = localMethodCall ? evaluate(value[1], localEnv) : "window";
+            args = [["quote", object], JSON.stringify(localMethodCall ? token.slice(1) : token.slice(3))];
             args = args.concat(value.slice(localMethodCall ? 2 : 1));
-            f = evaluate("externalcall", localEnv);
+            token = "externalcall";
         }
+        var f = evaluate(token, localEnv);
         if(["quote", "backquote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
             for(var i in args) args[i] = evaluate(args[i], localEnv);
         if(["if", "backquote", "apply"].indexOf(token) >= 0 || f.lambda) args.push(localEnv);
