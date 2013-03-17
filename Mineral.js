@@ -30,10 +30,16 @@ function isFunction(f) {
     return typeof f == "function";
 }
 
-function clone(object) {
-    var clone = {};
-    for(var key in object) clone[key] = object[key];
-    return clone;
+function isEnvironment(object) {
+    return typeof object == "object" && object.mineralEnvironmentObject == true;
+}
+
+function createEnvironment(oldEnv) {
+    var newEnv = {};
+    // FIXME: clone arrays appropriatelly!
+    if(isEnvironment(oldEnv)) for(var key in oldEnv) newEnv[key] = oldEnv[key];
+    else newEnv.mineralEnvironmentObject = true;
+    return newEnv;
 }
 
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
@@ -81,8 +87,8 @@ var mineral = {
             bindings = bindings.slice(0,optionalArgsSep);
         }
         var lambda = function() {
-            var args = Array.prototype.slice.call(arguments), localEnv = args.pop();
-            localEnv = localEnv ? localEnv : {};
+            var args = Array.prototype.slice.call(arguments),
+                localEnv = isEnvironment(args[args.length-1]) ? args.pop() : createEnvironment();
             for (var i in bindings) localEnv[fixName(bindings[i])] = args[i];
             if(optionalArgsSep >= 0)
                 localEnv[fixName(optionalBinding)] = args.slice(bindings.length);
@@ -93,7 +99,7 @@ var mineral = {
     },
 
     "def": function(name, value) {
-        var localEnv = {};
+        var localEnv = createEnvironment();
         name = fixName(name);
         localEnv[name] = function(x) { return mineral[name](x); };
         mineral[name] = evaluate(value, localEnv);
@@ -141,7 +147,7 @@ function resolve(atom, localEnv) {
 }
 
 function evaluate(value, localEnv) {
-    localEnv = clone(localEnv);
+    localEnv = createEnvironment(localEnv);
     if(isNIL(value)) return [];
     if (!isList(value)) return resolve(value, localEnv);
     else {
