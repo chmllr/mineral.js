@@ -13,7 +13,7 @@ function isString(x) {
 }
 
 function isMineralString(x) {
-    return isString(x) && x.match(/^"([^"]|\\")*"$/);
+    return isString(x) && x.match(/^".*"$/);
 }
 
 function isJSReference(x) {
@@ -21,8 +21,6 @@ function isJSReference(x) {
 } 
 
 function fixName(name) {
-    if (name == undefined)
-        console.log("oops");
     if(name.indexOf("-") >= 0) return name.replace(/-/g, "_");
     else if(name.indexOf("_") >= 0) return name.replace(/_/g, "-");
     return name;
