@@ -60,6 +60,8 @@
         "50" "(let (x 'A) x)" "A"
         "51" "(let (x 'A y ()) (cons x y))" "(A)"
         "52" "(last '(a b c d e f g))" "g"
+        "53" "(map str '(% a . (list a v)))" "(\"lambda\" \"(a)\" \"(list a v)\")"
+        "54" "(js/stringify '(% a . (list a v)))" "\"(lambda (a) (list a v))\""
         ))
 
 (defn process-tests (tests)
