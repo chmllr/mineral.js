@@ -124,8 +124,8 @@ var mineral = {
 
     "externalcall": function() {
         var args = Array.prototype.slice.call(arguments);
+        var object = eval(args[0]), method = args[1], args = args.slice(2);
         for(var i in args) args[i] = eval(args[i]);
-        var object = args[0], method = args[1], args = args.slice(2);
         return JSON.stringify(object[method].apply(object, args));
     },
 
@@ -160,7 +160,7 @@ function evaluate(value, localEnv) {
         if(localMethodCall || isJSReference(token)) {
             var object = localMethodCall ? evaluate(value[1], localEnv) : "js/window";
             object = isJSReference(object) ? object.slice(3) : object;
-            args = [["quote", object], JSON.stringify(localMethodCall ? token.slice(1) : token.slice(3))];
+            args = [["quote", object], ["quote", localMethodCall ? token.slice(1) : token.slice(3)]];
             args = args.concat(value.slice(localMethodCall ? 2 : 1));
             token = "externalcall";
         }
