@@ -39,7 +39,7 @@
 
 (defn empty?
     (list)
-    (eq list ()))
+    (eq? list ()))
 
 (defn
     reduce (f memo list)

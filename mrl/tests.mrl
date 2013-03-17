@@ -1,7 +1,7 @@
 (defmacro assert-equal
     (n input output)
     `(let (actual-output (js/interpret ~input))
-      (if (eq ~output actual-output)
+      (if (eq? ~output actual-output)
          (console-log (str "Test " ~n " successful: '" ~input "' --> '" ~output "'"))
          (console-error (str "Test " ~n " failed: '" ~input "' yields '" actual-output "' instead of '" ~output "'")))))
 (def tests
@@ -13,24 +13,24 @@
         5   (atom '()) true
         6   (atom (atom 'a)) true
         7   (atom '(atom 'a)) false
-        8   (eq 'a 'a) true
-        9   (eq 'a 'b) false
-        10  (eq '() '()) true
+        8   (eq? 'a 'a) true
+        9   (eq? 'a 'b) false
+        10  (eq? '() '()) true
         11  (head '(a b c)) a
         12  (tail '(a b c)) (b c)
         13  (cons 'a '(b c)) (a b c)
         14  (cons 'a (cons 'b (cons 'c '()))) (a b c)
         15  (cons 'a ()) (a)
         16  (cons 'a '()) (a)
-        17  (if (eq 'a 'b) 'first 'second) second
-        18  (if (eq () ()) 'first 'second) first
+        17  (if (eq? 'a 'b) 'first 'second) second
+        18  (if (eq? () ()) 'first 'second) first
         19  ((% x . (cons x '(b))) 'a) (a b)
         20  ((% x y . (cons x (tail y))) 'z '(a b c)) (z b c)
         21  ((% f . (f '(b c))) (% x . (cons 'a x))) (a b c)
         22  ((def subst 
                (% x y z . 
                   (if (atom z) 
-                    (if (eq z y) x z) 
+                    (if (eq? z y) x z) 
                     (cons (subst x y (head z))
                           (subst x y (tail z))))))
                'm 'b '(a b (a b c) d)) (a m (a m c) d)
@@ -40,22 +40,22 @@
         26  '(cons 'a ()) (cons (quote a) ())
         27  ''(cons 'a ()) (quote (cons (quote a) ()))
         28  `~'a a
-        29  `(cons ~(if true 'first 'second) (cons ~(eq 'a 'b) ())) (cons first (cons false ()))
-        30  ((% x y z . (cons y (cons z ()))) (def f (% x . (eq x 'a))) (f 'a) (f 'b)) (true false)
+        29  `(cons ~(if true 'first 'second) (cons ~(eq? 'a 'b) ())) (cons first (cons false ()))
+        30  ((% x y z . (cons y (cons z ()))) (def f (% x . (eq? x 'a))) (f 'a) (f 'b)) (true false)
         31  ((macro (x) `(cons ~x '(Z))) 'U) (U Z)
         32  ((% x y . y) (defmacro mycons (a b) `(cons ~a ~b)) (mycons 'T '(S))) (T S)
         33  ((% x y . y) (defn mycons (a b) (cons a b)) (mycons 'T '(S))) (T S)
         34  ((% x y . y) (defn f (a b & more) (cons a more)) (f 'X 'Y 'W 'O 'W)) (X W O W)
         35  ((% x y . y) (defn f (& opt) (cons 'OPTIONAL-ARGS opt)) (f 'X 'Y 'W 'O 'W)) (OPTIONAL-ARGS X Y W O W)
-        36  (eq (tail '(Z)) ()) true
+        36  (eq? (tail '(Z)) ()) true
         37  (reduce (% l e . (cons e l)) () '(A B C)) (C B A)
-        38  (map (% v . (eq v 'X)) '(X Y Z X Q)) (true false false true false)
+        38  (map (% v . (eq? v 'X)) '(X Y Z X Q)) (true false false true false)
         39  (.concat "AB" "CD") "\"ABCD\""
         40  "\"test\""  "\"test\""
         41  (cons "hi" (cons "hey" '("hello"))) ("hi" "hey" "hello")
-        42  (eq "test" 'test) false
+        42  (eq? "test" 'test) false
         43  (str "con" "ca" "te" "na" "tion") "\"concatenation\""
-        44  (eq "test" "test") true
+        44  (eq? "test" "test") true
         45  (apply (% x y z . (cons x (cons y z))) '(a b ())) (a b)
         46  (apply str '(true false "test")) "\"truefalsetest\""
         47  ((% x . ((% y . x))) 'Z) Z

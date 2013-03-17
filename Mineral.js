@@ -52,7 +52,7 @@ var mineral = {
         return !isList(x) || isNIL(x);
     },
 
-    "eq": function(a, b) {
+    "eq?": function(a, b) {
         return a == b || (isNIL(a) && isNIL(b));
     },
 
@@ -68,9 +68,7 @@ var mineral = {
     },
 
     "cons": function(element, list) {
-        var result = list.slice(0);
-        result.unshift(element);
-        return result;
+        return [element].concat(list);
     },
 
     "if": function(guard, thenAction, elseAction, localEnv) {
@@ -110,9 +108,7 @@ var mineral = {
             args = args.slice(0); // avoid destruction
             var token = args.shift();
             if(token == sugarMap["~"]) return evaluate(args[0], localEnv);
-            var result = (isNIL(args) ? [] : mineral.backquote(args, localEnv))
-            result.unshift(mineral.backquote(token, localEnv));
-            return result;
+            return [mineral.backquote(token, localEnv)].concat(isNIL(args) ? [] : mineral.backquote(args, localEnv));
         }
         return args;
     },
