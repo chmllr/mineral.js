@@ -19,7 +19,7 @@ Mineral.js is a yet another Lisp on JS started as an exercise after reading "The
 
 ## Syntactic Sugar
 
- - quote `'`, unquote `~`, backquote ` \` `
+ - quote `'`, unquote `~`, backquote \`
  - lambda function `(% arg1 arg2 ... argN . s-expression)`
  - commenting out a sexp can be done by prepending the sexp with `#` : `(# map f list)`
 

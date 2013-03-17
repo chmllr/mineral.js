@@ -2,8 +2,11 @@
     (n input output)
     `(let (actual-output (js/interpret ~input))
       (if (eq? ~output actual-output)
-         (console-log (str "Test " ~n " successful: '" ~input "' --> '" ~output "'"))
-         (console-error (str "Test " ~n " failed: '" ~input "' yields '" actual-output "' instead of '" ~output "'")))))
+         (console-log (str "Test " ~n " successful: '" 
+                           ~input "' --> '" ~output "'"))
+         (console-error (str "Test " ~n " failed: '" ~input "' yields '" 
+                             actual-output "' instead of '" ~output "'")))))
+
 (def tests
     '(
         1   'a a
