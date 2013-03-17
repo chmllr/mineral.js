@@ -19,7 +19,7 @@ Mineral.js is a yet another Lisp on JS started as an exercise after reading "The
 
 ## Syntactic Sugar
 
- - quote `'`, unquote `~`, backquote `\``
+ - quote `'`, unquote `~`, backquote ` \` `
  - lambda function `(% arg1 arg2 ... argN . s-expression)`
  - commenting out a sexp can be done by prepending the sexp with `#` : `(# map f list)`
 
@@ -36,5 +36,13 @@ Mineral.js is a yet another Lisp on JS started as an exercise after reading "The
 ## Interoperability with JS
 
 All references to JS objects and top level functions should be qualified with a "js/" prefix:
+
  - `(js/alert "hello world!")`
  - `(.log js/console "hello world!")`
+
+## File Loading
+
+Mineral code can be written in `\*.mrl` files which will be then loaded using `loadFile()`.
+Example:
+
+    <body onload="loadFiles('mrl/mineral.mrl', 'mrl/tests.mrl')">
