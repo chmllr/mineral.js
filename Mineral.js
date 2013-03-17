@@ -200,12 +200,11 @@ function tokenize(code, memo, pos) {
         result = opener == "(" 
             ? tokenize(code.substring(oldPos+1, pos), [], 0)
             : opener + code.substring(oldPos+1, pos) + closer;
-    } else
-        while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
+    } else while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
     if(sugared)
         for(var i in ops)
-    result = [ops[i], result];
-    memo.push(result);
+            result = [ops[i], result];
+    if(!(isList(result) && result[0] == "#")) memo.push(result); 
     return tokenize(code, memo, pos+1);
 }
 
