@@ -134,8 +134,7 @@ var mineral = {
 }
 
 function resolve(atom, localEnv) {
-    if(atom == undefined || isMineralString(atom)) return atom;
-    if(isJSReference(atom)) return atom.slice(3);
+    if(atom == undefined || isMineralString(atom) || isJSReference(atom)) return atom;
     var result;
     if(localEnv) {
         result = localEnv[fixName(atom)];
@@ -159,7 +158,8 @@ function evaluate(value, localEnv) {
         }
         var localMethodCall = isString(token) && token.charAt(0) == ".";
         if(localMethodCall || isJSReference(token)) {
-            var object = localMethodCall ? evaluate(value[1], localEnv) : "window";
+            var object = localMethodCall ? evaluate(value[1], localEnv) : "js/window";
+            object = isJSReference(object) ? object.slice(3) : object;
             args = [["quote", object], JSON.stringify(localMethodCall ? token.slice(1) : token.slice(3))];
             args = args.concat(value.slice(localMethodCall ? 2 : 1));
             token = "externalcall";
