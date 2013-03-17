@@ -1,8 +1,9 @@
 (defmacro assert-equal
     (n input output)
-    `(if (eq ~output (js/interpret ~input))
-        (console-log (str "Test " ~n " successful: '"~input "' -> '" ~output "'"))
-        (console-error (str "Test failed: '"~input "' -/-> '" ~output "'"))))
+    `(let (actual-output (js/interpret ~input))
+      (if (eq ~output actual-output)
+         (console-log (str "Test " ~n " successful: '" ~input "' --> '" ~output "'"))
+         (console-error (str "Test failed: '" ~input "' yields '" actual-output "' instead of '" ~output "'")))))
 
 (def tests
     '(
