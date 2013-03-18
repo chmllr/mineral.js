@@ -70,6 +70,8 @@
         52  (last '(a b c d e f g)) g
         53  (map str '(% a . (list a v))) "(\"lambda\" \"(a)\" \"(list a v)\")"
         54  (js/stringify '(% a . (list a v))) "\"(lambda (a) (list a v))\""
+        55  ((% a-b c-d . (cons a-b c-d)) 'x-y ()) (x-y)
+        55  ((% x . x) (def binde-strich 'TEST) binde-strich) TEST
 
         ))
 

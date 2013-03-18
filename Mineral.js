@@ -20,12 +20,6 @@ function isJSReference(x) {
     return isString(x) && x.indexOf("js/") == 0;
 } 
 
-function fixName(name) {
-    if(name.indexOf("-") >= 0) return name.replace(/-/g, "_");
-    else if(name.indexOf("_") >= 0) return name.replace(/_/g, "-");
-    return name;
-}
-
 function isFunction(f) {
     return typeof f == "function";
 }
@@ -89,9 +83,9 @@ var mineral = {
         var lambda = function() {
             var args = Array.prototype.slice.call(arguments),
                 localEnv = isEnvironment(args[args.length-1]) ? args.pop() : createEnvironment();
-            for (var i in bindings) localEnv[fixName(bindings[i])] = args[i];
+            for (var i in bindings) localEnv[bindings[i]] = args[i];
             if(optionalArgsSep >= 0)
-                localEnv[fixName(optionalBinding)] = args.slice(bindings.length);
+                localEnv[optionalBinding] = args.slice(bindings.length);
             return evaluate(exp, localEnv);
         };
         lambda["lambda"] = true;
@@ -100,9 +94,9 @@ var mineral = {
 
     "def": function(name, value) {
         var localEnv = createEnvironment();
-        name = fixName(name);
         localEnv[name] = function(x) { return mineral[name](x); };
         mineral[name] = evaluate(value, localEnv);
+        if(name.indexOf("-") >= 0) mineral[name.replace(/-/g, "_")] = mineral[name] 
         return mineral[name];
     },
 
@@ -137,10 +131,10 @@ function resolve(atom, localEnv) {
     if(atom == undefined || isMineralString(atom) || isJSReference(atom)) return atom;
     var result;
     if(localEnv) {
-        result = localEnv[fixName(atom)];
+        result = localEnv[atom];
         if(result != undefined) return result;
     }
-    result = mineral[fixName(atom)];
+    result = mineral[atom];
     if(atom != undefined && result == undefined)
         throw("The identifier " + atom + " can't be resolved.");
     return result;
