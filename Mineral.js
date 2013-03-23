@@ -136,7 +136,7 @@ function resolve(atom, localEnv) {
     }
     result = mineral[atom];
     if(atom != undefined && result == undefined)
-        throw("The identifier " + atom + " can't be resolved.");
+        throw("The identifier '" + atom + "' can't be resolved.");
     return result;
 }
 
@@ -230,7 +230,11 @@ function normalize(code) {
 }
 
 function interpret(input) {
-    return stringify(evaluate(parse(normalize(input))));
+    try {
+        return stringify(evaluate(parse(normalize(input))));
+    } catch(error) {
+        return error;
+    }
 }
 
 function loadFiles() {
