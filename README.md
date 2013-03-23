@@ -1,6 +1,6 @@
 # README
 
-Mineral.js is a yet another Lisp on JS started as an exercise after reading "The Roots of Lisp" paper by Paul Graham.
+Mineral.js is a yet another Lisp in the browser started as an exercise after reading "The Roots of Lisp" paper by Paul Graham.
 
 ## Primitives
 
@@ -19,7 +19,6 @@ Mineral.js is a yet another Lisp on JS started as an exercise after reading "The
 
 ## Syntactic Sugar
 
- - quote `'`, unquote `~`, backquote \`
  - lambda function `(% arg1 arg2 ... argN . s-expression)`
  - commenting out a sexp can be done by prepending the sexp with `#` : `(# map f list)`
 
@@ -32,6 +31,7 @@ Mineral.js is a yet another Lisp on JS started as an exercise after reading "The
  - `cdr` is `tail`
  - `label` is `def`
  - `eq` is `eq?`
+ - unquoting with `~`
 
 ## Interoperability with JS
 
