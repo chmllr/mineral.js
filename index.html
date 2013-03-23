@@ -4,24 +4,11 @@
     </head>
     <body onload="loadFiles('mrl/mineral.mrl', 'mrl/mineral-console.mrl', 'mrl/tests.mrl')">
         <textarea rows=10 cols=80 id="mineralConsole"
-            onKeyPress="processCommand()"
+            onKeyPress="mineral.process_command()"
             onKeyDown="mineral.insert_last_command()"
             style="background: #444;
                    color: #bfb;
                    font-family: 'Courier New';
                    font-size: 1em;">&gt;&nbsp;</textarea>
-        <script>
-
-            function processCommand() {
-                if(event.keyCode != 13) return true;
-                var content = mineral.mineral_console.value;
-                mineral.command = content.slice(content.lastIndexOf(">") + 2);
-                mineral.mineral_console.value += "\n" + interpret(mineral.command) + "\n> ";
-                mineral.mineral_console.scrollTop = mineral.mineral_console.scrollHeight;
-                event.preventDefault();
-                return false;
-            }
-
-        </script>
     </body>
 </html>
