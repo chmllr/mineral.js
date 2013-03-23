@@ -123,7 +123,7 @@ var mineral = {
         var callee = object[field];
         var result = isFunction(callee)
                         ? callee.apply(object, args)
-                        : (args.length > 0 ? object[field] = args[0] : field);
+                        : (args.length > 0 ? object[field] = args[0] : callee);
         return isString(result) ? JSON.stringify(result) : result;
     },
 
@@ -133,15 +133,9 @@ var mineral = {
 
 function resolve(atom, localEnv) {
     if(atom == undefined || isMineralString(atom) || isJSReference(atom)) return atom;
-    var result;
-    if(localEnv) {
-        result = localEnv[atom];
-        if(result != undefined) return result;
-    }
-    result = mineral[atom];
-    if(atom != undefined && result == undefined)
-        throw("The identifier '" + atom + "' can't be resolved.");
-    return result;
+    if(atom in localEnv) return localEnv[atom];
+    if(atom in mineral) return mineral[atom];
+    throw("The identifier '" + atom + "' can't be resolved.");
 }
 
 function evaluate(value, localEnv) {

@@ -2,38 +2,26 @@
     <head>
       <script type="text/javascript" src="Mineral.js"></script>
     </head>
-    <body onload="loadFiles('mrl/mineral.mrl', 'mrl/tests.mrl')">
+    <body onload="loadFiles('mrl/mineral.mrl', 'mrl/mineral-console.mrl', 'mrl/tests.mrl')">
         <textarea rows=10 cols=80 id="mineralConsole"
             onKeyPress="processCommand()"
-            onKeyDown="insertLastCommand()"
+            onKeyDown="mineral.insert_last_command()"
             style="background: #444;
                    color: #bfb;
                    font-family: 'Courier New';
                    font-size: 1em;">&gt;&nbsp;</textarea>
         <script>
 
-            var mineralConsole = document.getElementById("mineralConsole");
-            mineralConsole.focus();
-            mineralConsole.setSelectionRange(2,2);
-            var lastCommand;
-
             function processCommand() {
                 if(event.keyCode != 13) return true;
-                var content = mineralConsole.value;
-                lastCommand = content.slice(content.lastIndexOf(">") + 2);
-                mineralConsole.value += "\n" + interpret(lastCommand) + "\n> ";
-                mineralConsole.scrollTop = mineralConsole.scrollHeight;
+                var content = mineral.mineral_console.value;
+                mineral.command = content.slice(content.lastIndexOf(">") + 2);
+                mineral.mineral_console.value += "\n" + interpret(mineral.command) + "\n> ";
+                mineral.mineral_console.scrollTop = mineral.mineral_console.scrollHeight;
                 event.preventDefault();
                 return false;
             }
 
-            function insertLastCommand(){
-                if(event.keyCode != 38) return true;
-                mineralConsole.value += lastCommand;
-                lastCommand = "";
-                event.preventDefault();
-                return false;
-            }
         </script>
     </body>
 </html>

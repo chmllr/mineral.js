@@ -1,0 +1,16 @@
+(def mineral-console
+  (.getElementById js/document "mineralConsole"))
+
+(def command)
+
+(defn insert-last-command ()
+  (if (eq? (.keyCode js/event) '38)
+    (do
+      (.value mineral-console (str (.value mineral-console) command))
+      (.preventDefault js/event)
+      false)
+    true))
+
+(.focus mineral-console)
+
+(.setSelectionRange mineral-console '2 '2);
