@@ -118,9 +118,12 @@ var mineral = {
 
     "externalcall": function() {
         var args = Array.prototype.slice.call(arguments);
-        var object = eval(args[0]), method = object[args[1]], args = args.slice(2);
+        var object = eval(args[0]), field = args[1], args = args.slice(2);
         for(var i in args) args[i] = isMineralString(args[i]) ? eval(args[i]) : args[i];
-        var result = isFunction(method) ? method.apply(object, args) : method;
+        var callee = object[field];
+        var result = isFunction(callee)
+                        ? callee.apply(object, args)
+                        : (args.length > 0 ? object[field] = args[0] : field);
         return isString(result) ? JSON.stringify(result) : result;
     },
 

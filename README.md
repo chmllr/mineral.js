@@ -40,6 +40,14 @@ All references to JS objects and top level functions should be qualified with a 
  - `(js/alert "hello world!")`
  - `(.log js/console "hello world!")`
 
+Properties are accessed just as functions for a read:
+
+   (.value (.getElementById js/document "someId")) ; returns the value of 'someId' element
+
+and can be set by using them as functions with arguments:
+
+   (.value (.getElementById js/document "someId") "hey") ; sets the value of 'someId' to "hey"
+
 ## File Loading
 
 Mineral code can be written in `\*.mrl` files which will be then loaded using `loadFiles()`.
