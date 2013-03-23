@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Mineral.js by chmllr</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Mineral.js</h1>
+        <p>Yet another Lisp in the browser</p>
+        <p class="view"><a href="https://github.com/chmllr/Mineral.js">View the Project on GitHub <small>chmllr/Mineral.js</small></a></p>
+        <ul>
+          <li><a href="https://github.com/chmllr/Mineral.js/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/chmllr/Mineral.js/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/chmllr/Mineral.js">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>README</h1>
+
+<p>Mineral.js is a yet another Lisp on JS started as an exercise after reading "The Roots of Lisp" paper by Paul Graham.</p>
+
+<h2>Primitives</h2>
+
+<ul>
+<li><code>quote</code></li>
+<li><code>atom</code></li>
+<li><code>eq?</code></li>
+<li><code>head</code></li>
+<li><code>tail</code></li>
+<li><code>cons</code></li>
+<li><code>if</code></li>
+<li><code>lambda</code></li>
+<li><code>def</code></li>
+<li><code>apply</code></li>
+<li>
+<code>externalcall</code> (to invoke native JS world)</li>
+<li>
+<code>backquote</code> (will be removed)</li>
+</ul><h2>Syntactic Sugar</h2>
+
+<ul>
+<li>quote <code>'</code>, unquote <code>~</code>, backquote `</li>
+<li>lambda function <code>(% arg1 arg2 ... argN . s-expression)</code>
+</li>
+<li>commenting out a sexp can be done by prepending the sexp with <code>#</code> : <code>(# map f list)</code>
+</li>
+</ul><h2>Differences with Lisp</h2>
+
+<ul>
+<li>
+<code>t</code> is <code>true</code>
+</li>
+<li>
+<code>()</code> is <code>false</code>
+</li>
+<li>
+<code>cond</code> is <code>if</code> with intuitive semantics: <code>(if guard then-action  else-action)</code>
+</li>
+<li>
+<code>car</code> is <code>head</code>
+</li>
+<li>
+<code>cdr</code> is <code>tail</code>
+</li>
+<li>
+<code>label</code> is <code>def</code>
+</li>
+<li>
+<code>eq</code> is <code>eq?</code>
+</li>
+</ul><h2>Interoperability with JS</h2>
+
+<p>All references to JS objects and top level functions should be qualified with a <code>js/</code> prefix:</p>
+
+<pre><code>(js/alert "hello world!")
+(.log js/console "hello world!")
+</code></pre>
+
+<p>Properties are accessed just as functions for a read:</p>
+
+<pre><code>(.value (.getElementById js/document "someId")) ; returns the value of 'someId' element
+</code></pre>
+
+<p>and can be set by using them as functions with arguments:</p>
+
+<pre><code>(.value (.getElementById js/document "someId") "hey") ; sets the value of 'someId' to "hey"
+</code></pre>
+
+<h2>File Loading</h2>
+
+<p>Mineral code can be written in <code>\*.mrl</code> files which will be then loaded using <code>loadFiles()</code>.
+Example:</p>
+
+<pre><code>&lt;body onload="loadFiles('mrl/mineral.mrl', 'mrl/tests.mrl')"&gt;
+</code></pre>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/chmllr">chmllr</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-39551441-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
