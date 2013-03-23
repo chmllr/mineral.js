@@ -120,7 +120,8 @@ var mineral = {
         var args = Array.prototype.slice.call(arguments);
         var object = eval(args[0]), method = args[1], args = args.slice(2);
         for(var i in args) args[i] = isMineralString(args[i]) ? eval(args[i]) : args[i];
-        return JSON.stringify(object[method].apply(object, args));
+        var result = object[method].apply(object, args);
+        return isString(result) ? JSON.stringify(result) : result;
     },
 
     "true": true,
