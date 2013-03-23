@@ -80,7 +80,16 @@
     console-error (string)
     (.error js/console string))
 
+; ARITHMETIC
+
+(map (% x . (js/interpret
+              (js/stringify 
+                `(defn ~x (a b) (infix-call (str (quote ~x)) a b))))) '(+ - * / ^ & |))
+
 ; VARIOUS
+
+(defn infix-call (op a b)
+    (.eval js/window (str a op b)))
 
 (def id (% x . x))
 

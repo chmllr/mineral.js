@@ -71,7 +71,15 @@
         53  (map str '(% a . (list a v))) "(\"lambda\" \"(a)\" \"(list a v)\")"
         54  (js/stringify '(% a . (list a v))) "\"(lambda (a) (list a v))\""
         55  ((% a-b c-d . (cons a-b c-d)) 'x-y ()) (x-y)
-        55  ((% x . x) (def binde-strich 'TEST) binde-strich) TEST
+        56  ((% x . x) (def binde-strich 'TEST) binde-strich) TEST
+        57  (infix-call "+" 3 4) 7
+        58  (infix-call "^" 1 2) 3
+        59  (^ 1 2) 3
+        60  (+ 111 222) 333
+        61  (- 111 222) -111
+        62  (* 111 222) 24642
+        63  (| 8 1) 9
+        64  (^ (^ (^ 23) 66) 23) 66
 
         ))
 

@@ -131,11 +131,12 @@ var mineral = {
     "false": false
 }
 
-function resolve(atom, localEnv) {
-    if(atom == undefined || isMineralString(atom) || isJSReference(atom)) return atom;
-    if(atom in localEnv) return localEnv[atom];
-    if(atom in mineral) return mineral[atom];
-    throw("The identifier '" + atom + "' can't be resolved.");
+function resolve(id, localEnv) {
+    if(id == undefined || isMineralString(id) || isJSReference(id)) return id;
+    if(!isNaN(id)) return id | 0;
+    if(id in localEnv) return localEnv[id];
+    if(id in mineral) return mineral[id];
+    throw("The identifier '" + id + "' can't be resolved.");
 }
 
 function evaluate(value, localEnv) {
