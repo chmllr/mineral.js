@@ -1,137 +1,157 @@
 <!DOCTYPE html>
 <html>
 
-  <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Mineral.js : Yet another Lisp in the browser" />
+<head>
+<meta charset='utf-8' />
+<meta http-equiv="X-UA-Compatible" content="chrome=1" />
+<meta name="description" content="Mineral.js : Yet another Lisp in the browser" />
+<script type="text/javascript" src="javascripts/Markdown.Converter.js"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+<title>Mineral.js</title>
+</head>
 
-    <title>Mineral.js</title>
-  </head>
+<body>
 
-  <body>
+<!-- HEADER -->
+<div id="header_wrap" class="outer">
+    <header class="inner">
+        <a id="forkme_banner" href="https://github.com/chmllr/Mineral.js">View on GitHub</a>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/chmllr/Mineral.js">View on GitHub</a>
+        <h1 id="project_title">Mineral.js</h1>
+        <h2 id="project_tagline">Yet another Lisp in the browser</h2>
 
-          <h1 id="project_title">Mineral.js</h1>
-          <h2 id="project_tagline">Yet another Lisp in the browser</h2>
+        <section id="downloads">
+            <a class="zip_download_link" href="https://github.com/chmllr/Mineral.js/zipball/master">Download this project as a .zip file</a>
+            <a class="tar_download_link" href="https://github.com/chmllr/Mineral.js/tarball/master">Download this project as a tar.gz file</a>
+        </section>
+    </header>
+</div>
 
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/chmllr/Mineral.js/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/chmllr/Mineral.js/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
+<!-- MAIN CONTENT -->
+<div id="main_content_wrap" class="outer">
+    <section id="main_content" class="inner">
         <h1>README</h1>
 
-<p>Mineral.js is a yet another Lisp in the browser started as an exercise after reading "The Roots of Lisp" paper by Paul Graham.</p>
+        <p>Mineral.js is a yet another Lisp in the browser started as an exercise after reading "The Roots of Lisp" paper by Paul Graham.</p>
 
-<h2>Primitives</h2>
+        <h2>Primitives</h2>
 
-<ul>
-<li><code>quote</code></li>
-<li><code>atom</code></li>
-<li><code>eq?</code></li>
-<li><code>head</code></li>
-<li><code>tail</code></li>
-<li><code>cons</code></li>
-<li><code>if</code></li>
-<li><code>lambda</code></li>
-<li><code>def</code></li>
-<li><code>apply</code></li>
-<li>
-<code>externalcall</code> (to invoke native JS world)</li>
-<li>
-<code>backquote</code> (will be removed)</li>
-</ul><h2>Syntactic Sugar</h2>
+        <ul>
+            <li><code>quote</code></li>
+            <li><code>atom</code></li>
+            <li><code>eq?</code></li>
+            <li><code>head</code></li>
+            <li><code>tail</code></li>
+            <li><code>cons</code></li>
+            <li><code>if</code></li>
+            <li><code>lambda</code></li>
+            <li><code>def</code></li>
+            <li><code>apply</code></li>
+            <li>
+            <code>externalcall</code> (to invoke native JS world)</li>
+            <li>
+            <code>backquote</code> (will be removed)</li>
+        </ul><h2>Syntactic Sugar</h2>
 
-<ul>
-<li>lambda function <code>(% arg1 arg2 ... argN . s-expression)</code>
-</li>
-<li>commenting out a sexp can be done by prepending the sexp with <code>#</code> : <code>(# map f list)</code>
-</li>
-</ul><h2>Differences with Lisp</h2>
+        <ul>
+            <li>lambda function <code>(% arg1 arg2 ... argN . s-expression)</code>
+            </li>
+            <li>commenting out a sexp can be done by prepending the sexp with <code>#</code> : <code>(# map f list)</code>
+            </li>
+        </ul><h2>Differences with Lisp</h2>
 
-<ul>
-<li>
-<code>t</code> is <code>true</code>
-</li>
-<li>
-<code>()</code> is <code>false</code>
-</li>
-<li>
-<code>cond</code> is <code>if</code> with intuitive semantics: <code>(if guard then-action  else-action)</code>
-</li>
-<li>
-<code>car</code> is <code>head</code>
-</li>
-<li>
-<code>cdr</code> is <code>tail</code>
-</li>
-<li>
-<code>label</code> is <code>def</code>
-</li>
-<li>
-<code>eq</code> is <code>eq?</code>
-</li>
-<li>unquoting with <code>~</code>
-</li>
-</ul><h2>Interoperability with JS</h2>
+        <ul>
+            <li>
+            <code>t</code> is <code>true</code>
+            </li>
+            <li>
+            <code>()</code> is <code>false</code>
+            </li>
+            <li>
+            <code>cond</code> is <code>if</code> with intuitive semantics: <code>(if guard then-action  else-action)</code>
+            </li>
+            <li>
+            <code>car</code> is <code>head</code>
+            </li>
+            <li>
+            <code>cdr</code> is <code>tail</code>
+            </li>
+            <li>
+            <code>label</code> is <code>def</code>
+            </li>
+            <li>
+            <code>eq</code> is <code>eq?</code>
+            </li>
+            <li>unquoting with <code>~</code>
+            </li>
+        </ul><h2>Interoperability with JS</h2>
 
-<p>All references to JS objects and top level functions should be qualified with a <code>js/</code> prefix:</p>
+        <p>All references to JS objects and top level functions should be qualified with a <code>js/</code> prefix:</p>
 
-<pre><code>(js/alert "hello world!")
+        <pre><code>(js/alert "hello world!")
 (.log js/console "hello world!")
-</code></pre>
+        </code></pre>
 
-<p>Properties are accessed just as functions for a read:</p>
+        <p>Properties are accessed just as functions for a read:</p>
 
-<pre><code>(.value (.getElementById js/document "someId")) ; returns the value of 'someId' element
-</code></pre>
+        <pre><code>(.value (.getElementById js/document "someId")) ; returns the value of 'someId' element
+        </code></pre>
 
-<p>and can be set by using them as functions with arguments:</p>
+        <p>and can be set by using them as functions with arguments:</p>
 
-<pre><code>(.value (.getElementById js/document "someId") "hey") ; sets the value of 'someId' to "hey"
-</code></pre>
+        <pre><code>(.value (.getElementById js/document "someId") "hey") ; sets the value of 'someId' to "hey"
+        </code></pre>
 
-<h2>File Loading</h2>
+        <h2>File Loading</h2>
 
-<p>Mineral code can be written in <code>\*.mrl</code> files which will be then loaded using <code>loadFiles()</code>.
-Example:</p>
+        <p>Mineral code can be written in <code>\*.mrl</code> files which will be then loaded using <code>loadFiles()</code>.
+        Example:</p>
 
-<pre><code>&lt;body onload="loadFiles('mrl/mineral.mrl', 'mrl/tests.mrl')"&gt;
-</code></pre>
-      </section>
-    </div>
+        <pre><code>&lt;body onload="loadFiles('mrl/mineral.mrl', 'mrl/tests.mrl')"&gt;
+        </code></pre>
+    </section>
+</div>
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
+<!-- FOOTER  -->
+<div id="footer_wrap" class="outer">
+    <footer class="inner">
         <p class="copyright">Mineral.js maintained by <a href="https://github.com/chmllr">chmllr</a></p>
         <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
+    </footer>
+</div>
 
-              <script type="text/javascript">
-            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-          </script>
-          <script type="text/javascript">
-            try {
-              var pageTracker = _gat._getTracker("UA-39551441-1");
-            pageTracker._trackPageview();
-            } catch(err) {}
-          </script>
+<script type="text/javascript">
+
+    function loadFile(path) {
+        var httpRequest = new XMLHttpRequest();
+
+        var processText = function() {
+            if (httpRequest.readyState === 4 && httpRequest.status === 200) {
+                var converter = new Markdown.Converter();
+                var html = converter.makeHtml(httpRequest.responseText);
+                document.getElementById("main_content").innerHTML = html;
+            }
+        };
+
+        httpRequest.onreadystatechange = processText;
+        httpRequest.onerror = function () { console.error("Couldn't load " + path); }
+        httpRequest.open('GET', path);
+        httpRequest.send();
+    }
+
+    loadFile("README.md");
+
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-39551441-1");
+        pageTracker._trackPageview();
+    } catch(err) {}
+</script>
 
 
-  </body>
+</body>
 </html>
