@@ -197,7 +197,7 @@ function tokenize(code, memo, pos) {
     if(sugared)
         for(var i in ops)
             result = [ops[i], result];
-    if(!(isList(result) && result[0] == "#")) memo.push(result); 
+    if(memo[memo.length-1] == "#_") memo.pop(); else memo.push(result); 
     return tokenize(code, memo, pos+1);
 }
 
