@@ -57,7 +57,7 @@
     40  "\"test\""  "\"test\""
     41  (cons "hi" (cons "hey" '("hello"))) ("hi" "hey" "hello")
     42  (eq? "test" 'test) false
-    43  (str "con" "ca" "te" "na" "tion") "\"concatenation\""
+    43  (str "con" #_ "comment" "ca" "te" "na" "tion") "\"concatenation\""
     44  (eq? "test" "test") true
     45  (apply (% x y z . (cons x (cons y z))) '(a b ())) (a b)
     46  (apply str '(true false "test")) "\"truefalsetest\""
@@ -68,7 +68,7 @@
     50  (let (x 'A) x) A
     51  (let (x 'A y ()) (cons x y)) (A)
     52  (last '(a b c d e f g)) g
-    53  (map str '(% a . (list a v))) "(\"lambda\" \"(a)\" \"(list a v)\")"
+    53  (map str '(% a #_ (gar bage) . (list a v))) "(\"lambda\" \"(a)\" \"(list a v)\")"
     54  (js/stringify '(% a . (list a v))) "\"(lambda (a) (list a v))\""
     55  ((% a-b c-d . (cons a-b c-d)) 'x-y ()) (x-y)
     56  ((% x . x) (def binde-strich 'TEST) binde-strich) TEST
@@ -80,6 +80,7 @@
     62  (* 111 222) 24642
     63  (| 8 1) 9
     64  (^ (^ (^ 23) 66) 23) 66
+    65  (list #_ any #_ (garbage) #_ 'will 'be 'ignored) (be ignored)
 
     ))
 
