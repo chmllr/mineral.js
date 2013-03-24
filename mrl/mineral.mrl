@@ -1,0 +1,97 @@
+; this file contains all core functions of Mineral
+
+; MACROS
+
+(def defmacro
+  (macro 
+    (name args body)
+    `(def ~name
+       (macro ~args ~body))))
+
+(def defn
+  (macro 
+    (name args body)
+    `(def ~name
+       (lambda ~args ~body))))
+
+(defmacro let
+  (args exp)
+  (apply 
+    (% bindings values . `(apply (lambda ~bindings ~exp) ~values))
+    ((% f . (list (f head args) (cons 'list (f second args))))
+        (% op list .
+           (if (empty? list) () 
+             (cons (op list) 
+                   (f op (tail (tail list)))))))))
+
+; LISTS
+
+(defn list (& items) items)
+
+(defn second (list) (head (tail list)))
+
+(defn third (list) (head (tail (tail list))))
+
+(defn last (l)
+  (let (elem (head l)
+             rest (tail l))
+    (if (empty? rest) elem (last rest))))
+
+(defn empty?
+  (list)
+  (eq? list ()))
+
+(defn
+  reduce (f memo list)
+  (if (empty? list)
+    memo
+    (reduce f
+            (f memo (head list))
+            (tail list))))
+
+(defn reduce-right (f memo list)
+  (if (empty? list)
+    memo
+    (f (head list) (reduce-right f memo (tail list)))))
+
+(defn map (f list)
+  (if (empty? list) 
+    ()
+    (cons
+      (f (head list))
+      (map f (tail list)))))
+
+(defn
+  reverse (list)
+  (reduce (% memo elem . (cons elem memo)) () list))
+
+; STRINGS
+
+(defn str (& strings)
+  (reduce-right 
+    (% elem memo . (.concat (js/stringify elem) memo))
+    ""
+    strings))
+
+(defn console-log (string)
+  (.log js/console string))
+
+(defn console-error (string)
+  (.error js/console string))
+
+; ARITHMETIC
+
+(map (% x . (js/interpret
+              (js/stringify 
+                `(defn ~x (a b) (infix-call (str (quote ~x)) a b))))) '(+ - * / ^ & |))
+
+; VARIOUS
+
+(defn infix-call (op a b)
+  (.eval js/window (str a op b)))
+
+(def id (% x . x))
+
+(defn do
+  (& statements)
+  (last statements))

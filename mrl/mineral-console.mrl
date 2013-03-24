@@ -1,0 +1,29 @@
+(def mineral-console
+  (.getElementById js/document "mineralConsole"))
+
+(def command)
+
+(defn insert-last-command ()
+  (if (eq? (.keyCode js/event) '38)
+    (do
+      (.value mineral-console (str (.value mineral-console) command))
+      (.preventDefault js/event)
+      false)
+    true))
+
+(defn process-command ()
+  (if (eq? (.keyCode js/event) 13)
+    ;(let (content (.value mineral-console)
+    ;     position (+ 2 (.lastIndexOf content ">")))
+    (do
+      (def command (.slice (.value mineral-console) (+ 2 (.lastIndexOf (.value mineral-console) ">"))))
+      (.value mineral-console (str (.value mineral-console) "\n" (js/interpret command) "\n> "))
+      (.scrollTop mineral-console (.scrollHeight mineral-console))
+      (.preventDefault js/event)
+      false)
+    ;)
+    true))
+
+(.focus mineral-console)
+
+(.setSelectionRange mineral-console '2 '2);
