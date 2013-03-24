@@ -23,7 +23,3 @@
       false)
     ;)
     true))
-
-(.focus mineral-console)
-
-(.setSelectionRange mineral-console '2 '2);
