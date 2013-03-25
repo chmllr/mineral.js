@@ -20,7 +20,7 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
 ## Syntactic Sugar
 
  - lambda function: `(% arg1 arg2 ... argN . s-expression)`
- - commenting out a sexp by prepending with `#`: `(# map f list)`
+ - commenting out a s-exp by prepending with `#_`: `#_ (map f list)`
 
 ## Differences with Lisp
 

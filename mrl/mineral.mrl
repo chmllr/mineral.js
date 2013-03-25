@@ -1,5 +1,24 @@
 ; this file contains all core functions of Mineral
 
+; PREPROCESSORS
+
+(def empty? (% coll . (eq? coll ())))
+
+(def list (lambda (& items) items))
+
+(def backquote (macro (exp) (backquote-helper exp)))
+
+(def backquote-helper
+  (% args .
+     (if (empty? args) args
+       (if (atom args) (list 'quote args)
+         (if (eq? 'unquote (head args))
+           (head (tail args))
+           (list
+             'cons
+             (backquote-helper (head args))
+             (backquote-helper (tail args))))))))
+ 
 ; MACROS
 
 (def defmacro
@@ -19,51 +38,45 @@
   (apply 
     (% bindings values . `(apply (lambda ~bindings ~exp) ~values))
     ((% f . (list (f head args) (cons 'list (f second args))))
-        (% op list .
-           (if (empty? list) () 
-             (cons (op list) 
-                   (f op (tail (tail list)))))))))
+        (% op coll .
+           (if (empty? coll) () 
+             (cons (op coll) 
+                   (f op (tail (tail coll)))))))))
 
 ; LISTS
 
-(defn list (& items) items)
+(defn second (coll) (head (tail coll)))
 
-(defn second (list) (head (tail list)))
-
-(defn third (list) (head (tail (tail list))))
+(defn third (coll) (head (tail (tail coll))))
 
 (defn last (l)
   (let (elem (head l)
              rest (tail l))
     (if (empty? rest) elem (last rest))))
 
-(defn empty?
-  (list)
-  (eq? list ()))
-
 (defn
-  reduce (f memo list)
-  (if (empty? list)
+  reduce (f memo coll)
+  (if (empty? coll)
     memo
     (reduce f
-            (f memo (head list))
-            (tail list))))
+            (f memo (head coll))
+            (tail coll))))
 
-(defn reduce-right (f memo list)
-  (if (empty? list)
+(defn reduce-right (f memo coll)
+  (if (empty? coll)
     memo
-    (f (head list) (reduce-right f memo (tail list)))))
+    (f (head coll) (reduce-right f memo (tail coll)))))
 
-(defn map (f list)
-  (if (empty? list) 
+(defn map (f coll)
+  (if (empty? coll) 
     ()
     (cons
-      (f (head list))
-      (map f (tail list)))))
+      (f (head coll))
+      (map f (tail coll)))))
 
 (defn
-  reverse (list)
-  (reduce (% memo elem . (cons elem memo)) () list))
+  reverse (coll)
+  (reduce (% memo elem . (cons elem memo)) () coll))
 
 ; STRINGS
 

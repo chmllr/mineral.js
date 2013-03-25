@@ -36,7 +36,7 @@ function createEnvironment(oldEnv) {
     return newEnv;
 }
 
-var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
+var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote" };
 
 var enclosureMap = { '(' : ')', '"' : '"' };
 
@@ -100,17 +100,6 @@ var mineral = {
         return mineral[name];
     },
 
-    "backquote": function(args, localEnv) {
-        if(isNIL(args)) return [];
-        if (isList(args)) {
-            args = args.slice(0); // avoid destruction
-            var token = args.shift();
-            if(token == sugarMap["~"]) return evaluate(args[0], localEnv);
-            return [mineral.backquote(token, localEnv)].concat(isNIL(args) ? [] : mineral.backquote(args, localEnv));
-        }
-        return args;
-    },
-
     "apply": function(f, args, localEnv){
         if(f.lambda) args.push(localEnv);
         return f.apply(this, args);
@@ -149,6 +138,8 @@ function evaluate(value, localEnv) {
             macro = true;
             token = "lambda";
         }
+        else if(token == "unquote")
+            null;
         var localMethodCall = isString(token) && token.charAt(0) == ".";
         if(localMethodCall || isJSReference(token)) {
             var object = localMethodCall ? evaluate(value[1], localEnv) : "js/window";
@@ -158,9 +149,9 @@ function evaluate(value, localEnv) {
             token = "externalcall";
         }
         var f = evaluate(token, localEnv);
-        if(["quote", "backquote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
+        if(["quote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
             for(var i in args) args[i] = evaluate(args[i], localEnv);
-        if(["if", "backquote", "apply"].indexOf(token) >= 0 || f.lambda) args.push(localEnv);
+        if(["if", "apply"].indexOf(token) >= 0 || f.lambda) args.push(localEnv);
         var result = f.apply(this, args);
         if(macro) result["macro"] = macro;
         return f.macro ? evaluate(result, localEnv) : result;
@@ -197,7 +188,7 @@ function tokenize(code, memo, pos) {
     if(sugared)
         for(var i in ops)
             result = [ops[i], result];
-    if(!(isList(result) && result[0] == "#")) memo.push(result); 
+    if(memo[memo.length-1] == "#_") memo.pop(); else memo.push(result); 
     return tokenize(code, memo, pos+1);
 }
 
