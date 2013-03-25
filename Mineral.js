@@ -121,8 +121,10 @@ var mineral = {
 }
 
 function resolve(id, localEnv) {
-    if(id == undefined || isMineralString(id) || isJSReference(id)) return id;
-    if(!isNaN(id)) return id | 0;
+    if(id == undefined 
+        || isMineralString(id) 
+        || isJSReference(id)
+        || typeof id == "number") return id;
     if(id in localEnv) return localEnv[id];
     if(id in mineral) return mineral[id];
     throw("The identifier '" + id + "' can't be resolved.");
@@ -185,6 +187,8 @@ function tokenize(code, memo, pos) {
             ? tokenize(code.substring(oldPos+1, pos), [], 0)
             : opener + code.substring(oldPos+1, pos) + closer;
     } else while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
+    if(!isNIL(result) && !isNaN(result)) result = result | 0;
+    if(result == "true" || result == "false") result = result == "true";
     if(sugared)
         for(var i in ops)
             result = [ops[i], result];
@@ -212,7 +216,7 @@ function normalize(code) {
         // TODO: delete until the line end and not certain whitespace!
         { "pattern": /;.*[\n\r]/g, "substitution": "" }, // comments
         { "pattern": /[\s\t\n\r]+/g, "substitution": " " }, // whitespace normalization
-        { "pattern": /%(.*?)?\./g, "substitution": "lambda ($1)" } // lambda sugar
+        { "pattern": /%([a-zA-Z\-\s]*?)?\./g, "substitution": "lambda ($1)" } // lambda sugar
     ];
     for(var i in patterns)
         code = code.replace(patterns[i].pattern, patterns[i].substitution);

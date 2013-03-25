@@ -35,15 +35,51 @@
 
 (defmacro let
   (args exp)
-  (apply 
-    (% bindings values . `(apply (lambda ~bindings ~exp) ~values))
-    ((% f . (list (f head args) (cons 'list (f second args))))
-        (% op coll .
-           (if (empty? coll) () 
-             (cons (op coll) 
-                   (f op (tail (tail coll)))))))))
+  (reduce
+    (% memo pair .
+       (list 
+         (list 'lambda 
+               (cons (head pair) ()) 
+               memo)
+         (second pair)))
+    exp
+    (partition 2 args)))
+
+; VARIOUS
+
+(defn infix-call (op a b)
+  (.eval js/window (str a op b)))
+
+(def id (% x . x))
+
+(defn do
+  (& statements)
+  (last statements))
+
+(defmacro or (a b)
+  `(if ~a true ~b))
+
+(defmacro and (a b)
+  `(if ~a ~b false))
 
 ; LISTS
+
+(defn take (n coll)
+  (if (or (eq? n 0) (empty? coll))
+    ()
+    (cons (head coll)
+      (take (- n 1) (tail coll)))))
+
+(defn drop (n coll)
+  (if (or (eq? n 0) (empty? coll))
+    coll 
+    (drop (- n 1) (tail coll))))
+
+(defn partition (n coll)
+  (if (empty? coll)
+    ()
+    (cons (take n coll)
+          (partition n (drop n coll)))))
 
 (defn second (coll) (head (tail coll)))
 
@@ -97,14 +133,3 @@
 (map (% x . (js/interpret
               (js/stringify 
                 `(defn ~x (a b) (infix-call (str (quote ~x)) a b))))) '(+ - * / ^ & |))
-
-; VARIOUS
-
-(defn infix-call (op a b)
-  (.eval js/window (str a op b)))
-
-(def id (% x . x))
-
-(defn do
-  (& statements)
-  (last statements))
