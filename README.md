@@ -15,7 +15,6 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
  - `def`
  - `apply`
  - `externalcall` (to invoke native JS world)
- - `backquote` (will be removed)
 
 ## Syntactic Sugar
 

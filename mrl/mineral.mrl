@@ -1,5 +1,24 @@
 ; this file contains all core functions of Mineral
 
+; PREPROCESSORS
+
+(def empty? (% coll . (eq? coll ())))
+
+(def list (lambda (& items) items))
+
+(def backquote (macro (exp) (backquote-helper exp)))
+
+(def backquote-helper
+  (% args .
+     (if (empty? args) args
+       (if (atom args) (list 'quote args)
+         (if (eq? 'unquote (head args))
+           (head (tail args))
+           (list
+             'cons
+             (backquote-helper (head args))
+             (backquote-helper (tail args))))))))
+ 
 ; MACROS
 
 (def defmacro
@@ -16,54 +35,84 @@
 
 (defmacro let
   (args exp)
-  (apply 
-    (% bindings values . `(apply (lambda ~bindings ~exp) ~values))
-    ((% f . (list (f head args) (cons 'list (f second args))))
-        (% op list .
-           (if (empty? list) () 
-             (cons (op list) 
-                   (f op (tail (tail list)))))))))
+  (reduce
+    (% memo pair .
+       (list 
+         (list 'lambda 
+               (cons (head pair) ()) 
+               memo)
+         (second pair)))
+    exp
+    (reverse (partition 2 args))))
+
+; VARIOUS
+
+(defn infix-call (op a b)
+  (.eval js/window (str a op b)))
+
+(def id (% x . x))
+
+(defn do
+  (& statements)
+  (last statements))
+
+(defmacro or (a b)
+  `(if ~a true ~b))
+
+(defmacro and (a b)
+  `(if ~a ~b false))
 
 ; LISTS
 
-(defn list (& items) items)
+(defn take (n coll)
+  (if (or (eq? n 0) (empty? coll))
+    ()
+    (cons (head coll)
+      (take (- n 1) (tail coll)))))
 
-(defn second (list) (head (tail list)))
+(defn drop (n coll)
+  (if (or (eq? n 0) (empty? coll))
+    coll 
+    (drop (- n 1) (tail coll))))
 
-(defn third (list) (head (tail (tail list))))
+(defn partition (n coll)
+  (if (empty? coll)
+    ()
+    (cons (take n coll)
+          (partition n (drop n coll)))))
+
+(defn second (coll) (head (tail coll)))
+
+(defn third (coll) (head (tail (tail coll))))
 
 (defn last (l)
   (let (elem (head l)
              rest (tail l))
     (if (empty? rest) elem (last rest))))
 
-(defn empty?
-  (list)
-  (eq? list ()))
-
 (defn
-  reduce (f memo list)
-  (if (empty? list)
+  reduce (f memo coll)
+  (if (empty? coll)
     memo
     (reduce f
-            (f memo (head list))
-            (tail list))))
+            (f memo (head coll))
+            (tail coll))))
 
-(defn reduce-right (f memo list)
-  (if (empty? list)
+(defn reduce-right (f memo coll)
+  (if (empty? coll)
     memo
-    (f (head list) (reduce-right f memo (tail list)))))
+    (f (head coll) (reduce-right f memo (tail coll)))))
 
-(defn map (f list)
-  (if (empty? list) 
+(defn map (f coll)
+  (if (empty? coll) 
     ()
     (cons
-      (f (head list))
-      (map f (tail list)))))
+      (f (head coll))
+      (map f (tail coll)))))
 
 (defn
-  reverse (list)
-  (reduce (% memo elem . (cons elem memo)) () list))
+  reverse (coll)
+  (reduce (% memo elem . (cons elem memo)) () coll))
 
 ; STRINGS
 
@@ -84,14 +133,3 @@
 (map (% x . (js/interpret
               (js/stringify 
                 `(defn ~x (a b) (infix-call (str (quote ~x)) a b))))) '(+ - * / ^ & |))
-
-; VARIOUS
-
-(defn infix-call (op a b)
-  (.eval js/window (str a op b)))
-
-(def id (% x . x))
-
-(defn do
-  (& statements)
-  (last statements))

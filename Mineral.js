@@ -36,7 +36,7 @@ function createEnvironment(oldEnv) {
     return newEnv;
 }
 
-var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote"};
+var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote" };
 
 var enclosureMap = { '(' : ')', '"' : '"' };
 
@@ -100,17 +100,6 @@ var mineral = {
         return mineral[name];
     },
 
-    "backquote": function(args, localEnv) {
-        if(isNIL(args)) return [];
-        if (isList(args)) {
-            args = args.slice(0); // avoid destruction
-            var token = args.shift();
-            if(token == sugarMap["~"]) return evaluate(args[0], localEnv);
-            return [mineral.backquote(token, localEnv)].concat(isNIL(args) ? [] : mineral.backquote(args, localEnv));
-        }
-        return args;
-    },
-
     "apply": function(f, args, localEnv){
         if(f.lambda) args.push(localEnv);
         return f.apply(this, args);
@@ -132,8 +121,10 @@ var mineral = {
 }
 
 function resolve(id, localEnv) {
-    if(id == undefined || isMineralString(id) || isJSReference(id)) return id;
-    if(!isNaN(id)) return id | 0;
+    if(id == undefined 
+        || isMineralString(id) 
+        || isJSReference(id)
+        || typeof id == "number") return id;
     if(id in localEnv) return localEnv[id];
     if(id in mineral) return mineral[id];
     throw("The identifier '" + id + "' can't be resolved.");
@@ -149,6 +140,8 @@ function evaluate(value, localEnv) {
             macro = true;
             token = "lambda";
         }
+        else if(token == "unquote")
+            null;
         var localMethodCall = isString(token) && token.charAt(0) == ".";
         if(localMethodCall || isJSReference(token)) {
             var object = localMethodCall ? evaluate(value[1], localEnv) : "js/window";
@@ -158,9 +151,9 @@ function evaluate(value, localEnv) {
             token = "externalcall";
         }
         var f = evaluate(token, localEnv);
-        if(["quote", "backquote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
+        if(["quote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
             for(var i in args) args[i] = evaluate(args[i], localEnv);
-        if(["if", "backquote", "apply"].indexOf(token) >= 0 || f.lambda) args.push(localEnv);
+        if(["if", "apply"].indexOf(token) >= 0 || f.lambda) args.push(localEnv);
         var result = f.apply(this, args);
         if(macro) result["macro"] = macro;
         return f.macro ? evaluate(result, localEnv) : result;
@@ -194,6 +187,8 @@ function tokenize(code, memo, pos) {
             ? tokenize(code.substring(oldPos+1, pos), [], 0)
             : opener + code.substring(oldPos+1, pos) + closer;
     } else while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
+    if(!isNIL(result) && !isNaN(result)) result = result | 0;
+    if(result == "true" || result == "false") result = result == "true";
     if(sugared)
         for(var i in ops)
             result = [ops[i], result];
@@ -221,7 +216,7 @@ function normalize(code) {
         // TODO: delete until the line end and not certain whitespace!
         { "pattern": /;.*[\n\r]/g, "substitution": "" }, // comments
         { "pattern": /[\s\t\n\r]+/g, "substitution": " " }, // whitespace normalization
-        { "pattern": /%(.*?)?\./g, "substitution": "lambda ($1)" } // lambda sugar
+        { "pattern": /%([a-zA-Z\-\s]*?)?\./g, "substitution": "lambda ($1)" } // lambda sugar
     ];
     for(var i in patterns)
         code = code.replace(patterns[i].pattern, patterns[i].substitution);
