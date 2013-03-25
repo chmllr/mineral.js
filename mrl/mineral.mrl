@@ -43,7 +43,7 @@
                memo)
          (second pair)))
     exp
-    (partition 2 args)))
+    (reverse (partition 2 args))))
 
 ; VARIOUS
 

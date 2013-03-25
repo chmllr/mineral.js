@@ -85,6 +85,9 @@
     67  (take 4 '(a b)) (a b)
     68  (drop 4 '(a b c d e f g)) (e f g)
     69  (drop 4 '(a b)) ()
+    70  (let (x 'A y x) y) A
+    71  (let (x 11 y x f (% x . (* x x)) k (f y)) k) 11
+
 
     ))
 
