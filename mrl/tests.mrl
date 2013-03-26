@@ -93,10 +93,16 @@
     ))
 
 (defn process-tests (tests)
-  (if (empty? tests) "All tests executed."
+  (if (empty? tests) ()
     (do (assert-equal (head tests) (second tests) (third tests))
       (process-tests (tail (tail (tail tests)))))))
 
 (defn run-tests ()
-  (process-tests
-    (map str tests)))
+  (let (get-time (% . (.getTime (new Date)))
+        start (get-time)
+        result (process-tests (map str tests))
+        end (- (get-time) start)
+        result (str "All tests executed in " end "ms."))
+    (do
+      (console-log result)
+      result)))

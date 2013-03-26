@@ -49,6 +49,10 @@ and can be set by using them as functions with arguments:
     ; sets the value of 'someId' to "hey"
     (.value (.getElementById js/document "someId") "hey")
 
+Creation of objects is straighforward:
+
+    (new Date)
+
 ## File Loading
 
 Mineral code can be written in `*.mrl` files which will be then loaded using `loadFiles()`.
