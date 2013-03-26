@@ -69,7 +69,7 @@ var mineral = {
         return [element].concat(list);
     },
 
-    "if": function(guard, thenAction, elseAction, localEnv) {
+    "if": function(localEnv, guard, thenAction, elseAction) {
         var value = evaluate(guard, localEnv);
         return evaluate(value != false && !isNIL(value) ? thenAction : elseAction, localEnv);
     },
@@ -82,7 +82,7 @@ var mineral = {
         }
         var lambda = function() {
             var args = Array.prototype.slice.call(arguments),
-                localEnv = isEnvironment(args[args.length-1]) ? args.pop() : createEnvironment();
+                localEnv = isEnvironment(args[0]) ? args.shift() : createEnvironment();
             for (var i in bindings) localEnv[bindings[i]] = args[i];
             if(optionalArgsSep >= 0)
                 localEnv[optionalBinding] = args.slice(bindings.length);
@@ -92,16 +92,16 @@ var mineral = {
         return lambda;
     },
 
-    "def": function(name, value) {
-        var localEnv = createEnvironment();
+    "def": function(localEnv, name, value) {
+        localEnv = createEnvironment(localEnv);
         localEnv[name] = function(x) { return mineral[name](x); };
         mineral[name] = evaluate(value, localEnv);
         if(name.indexOf("-") >= 0) mineral[name.replace(/-/g, "_")] = mineral[name] 
         return mineral[name];
     },
 
-    "apply": function(f, args, localEnv){
-        if(f.lambda) args.push(localEnv);
+    "apply": function(localEnv, f, args){
+        if(f.lambda) args.unshift(localEnv);
         return f.apply(this, args);
     },
 
@@ -153,7 +153,7 @@ function evaluate(value, localEnv) {
         var f = evaluate(token, localEnv);
         if(["quote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
             for(var i in args) args[i] = evaluate(args[i], localEnv);
-        if(["if", "apply"].indexOf(token) >= 0 || f.lambda) args.push(localEnv);
+        if(["if", "apply", "def"].indexOf(token) >= 0 || f.lambda) args.unshift(localEnv);
         var result = f.apply(this, args);
         if(macro) result["macro"] = macro;
         return f.macro ? evaluate(result, localEnv) : result;
