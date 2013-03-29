@@ -20,6 +20,10 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
 
  - lambda function: `(% arg1 arg2 ... argN . s-expression)`
  - commenting out a s-exp by prepending with `#_`: `#_ (map f list)`
+ - list `['a 'b 'c]` is `(list 'a 'b 'c)`
+ - just as in Clojure, the argument lists _can_ use square brackets:
+  - `(lambda [a b] (+ a b))`
+  - `(defn f [a] (console-log a))`
 
 ## Differences with Lisp
 

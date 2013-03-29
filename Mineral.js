@@ -38,7 +38,7 @@ function createEnvironment(oldEnv) {
 
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote" };
 
-var enclosureMap = { '(' : ')', '"' : '"' };
+var enclosureMap = { '(' : ')', '"' : '"', "[": "]" };
 
 var mineral = {
 
@@ -100,8 +100,8 @@ var mineral = {
         return mineral[name];
     },
 
-    "apply": function(localEnv, f, args){
-        if(f.lambda) args.unshift(localEnv);
+    "apply": function(localEnv, f, args, token){
+        if(["if", "apply", "def"].indexOf(token) >= 0 || f.lambda) args.unshift(localEnv);
         return f.apply(this, args);
     },
 
@@ -153,8 +153,7 @@ function evaluate(value, localEnv) {
         var f = evaluate(token, localEnv);
         if(["quote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
             for(var i in args) args[i] = evaluate(args[i], localEnv);
-        if(["if", "apply", "def"].indexOf(token) >= 0 || f.lambda) args.unshift(localEnv);
-        var result = f.apply(this, args);
+        var result = mineral.apply(localEnv, f, args, token);
         if(macro) result["macro"] = macro;
         return f.macro ? evaluate(result, localEnv) : result;
     }
@@ -183,9 +182,10 @@ function tokenize(code, memo, pos) {
             else if(opener != closer && current == opener) enclosures++;
             else if(current == closer) enclosures--;
         }
-        result = opener == "(" 
+        result = opener != '"'
             ? tokenize(code.substring(oldPos+1, pos), [], 0)
             : opener + code.substring(oldPos+1, pos) + closer;
+        if(opener == "[" && memo[memo.length-1] != "lambda") result.unshift("list");
     } else while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
     if(!isNIL(result) && !isNaN(result)) result = result | 0;
     if(result == "true" || result == "false") result = result == "true";

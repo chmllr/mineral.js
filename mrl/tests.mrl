@@ -89,6 +89,9 @@
     71  (let (x 11 y x f (% x . (* x x)) k (f y)) k) 121
     72  (let (x 'A y '(B)) (cons x y)) (A B)
     73  (let (x 'S) (def y x)) S
+    74  [1 2 3 4] (1 2 3 4)
+    75  ((lambda [a b] (+ a b)) 2 3) 5
+    75  ((def [a b] (* a b)) 2 3) 6
 
     ))
 
