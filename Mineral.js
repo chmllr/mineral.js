@@ -185,7 +185,6 @@ function tokenize(code, memo, pos) {
         result = opener != '"'
             ? tokenize(code.substring(oldPos+1, pos), [], 0)
             : opener + code.substring(oldPos+1, pos) + closer;
-        if(opener == "[" && memo[memo.length-1] != "lambda") result.unshift("list");
     } else while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
     if(!isNIL(result) && !isNaN(result)) result = result | 0;
     if(result == "true" || result == "false") result = result == "true";
