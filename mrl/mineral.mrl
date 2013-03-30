@@ -6,7 +6,6 @@
 
 (def list (lambda (& items) items))
 
-(def backquote (macro (exp) (backquote-helper exp)))
 
 (def backquote-helper
   (% args .
@@ -18,11 +17,13 @@
              'cons
              (backquote-helper (head args))
              (backquote-helper (tail args))))))))
+
+(def backquote (macro (exp) (list 'backquote-helper (list 'quote exp))))
  
 ; MACROS
 
 (def defmacro
-  (macro 
+  (macro
     (name args body)
     `(def ~name
        (macro ~args ~body))))
@@ -65,33 +66,7 @@
 (defmacro and (a b)
   `(if ~a ~b false))
 
-; LISTS
-
-(defn take (n coll)
-  (if (or (eq? n 0) (empty? coll))
-    ()
-    (cons (head coll)
-      (take (- n 1) (tail coll)))))
-
-(defn drop (n coll)
-  (if (or (eq? n 0) (empty? coll))
-    coll 
-    (drop (- n 1) (tail coll))))
-
-(defn partition (n coll)
-  (if (empty? coll)
-    ()
-    (cons (take n coll)
-          (partition n (drop n coll)))))
-
-(defn second (coll) (head (tail coll)))
-
-(defn third (coll) (head (tail (tail coll))))
-
-(defn last (l)
-  (let (elem (head l)
-             rest (tail l))
-    (if (empty? rest) elem (last rest))))
+; LISTS CORE
 
 (defn
   reduce (f memo coll)
@@ -136,3 +111,32 @@
 (map (% x . (js/interpret
               (js/stringify 
                 `(defn ~x (a b) (infix-call (str (quote ~x)) a b))))) '(+ - * / ^ & |))
+
+; LISTS BONUS
+
+(defn take (n coll)
+  (if (or (eq? n 0) (empty? coll))
+    ()
+    (cons (head coll)
+      (take (- n 1) (tail coll)))))
+
+(defn drop (n coll)
+  (if (or (eq? n 0) (empty? coll))
+    coll 
+    (drop (- n 1) (tail coll))))
+
+(defn partition (n coll)
+  (if (empty? coll)
+    ()
+    (cons (take n coll)
+          (partition n (drop n coll)))))
+
+(defn second (coll) (head (tail coll)))
+
+(defn third (coll) (head (tail (tail coll))))
+
+(defn last (l)
+  (let (elem (head l)
+             rest (tail l))
+    (if (empty? rest) elem (last rest))))
+

@@ -134,29 +134,26 @@ function evaluate(value, localEnv) {
     localEnv = createEnvironment(localEnv);
     if(isNIL(value)) return [];
     if (!isList(value)) return resolve(value, localEnv);
-    else {
-        var token = value[0], args = value.slice(1), macro = false;
-        if(token == "macro") {
-            macro = true;
-            token = "lambda";
-        }
-        else if(token == "unquote")
-            null;
-        var localMethodCall = isString(token) && token.charAt(0) == ".";
-        if(localMethodCall || isJSReference(token)) {
-            var object = localMethodCall ? evaluate(value[1], localEnv) : "js/window";
-            object = isJSReference(object) ? object.slice(3) : object;
-            args = [["quote", object], ["quote", localMethodCall ? token.slice(1) : token.slice(3)]];
-            args = args.concat(value.slice(localMethodCall ? 2 : 1));
-            token = "externalcall";
-        }
-        var f = evaluate(token, localEnv);
-        if(["quote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
-            for(var i in args) args[i] = evaluate(args[i], localEnv);
-        var result = mineral.apply(localEnv, f, args, token);
-        if(macro) result["macro"] = macro;
-        return f.macro ? evaluate(result, localEnv) : result;
+    var token = value[0], args = value.slice(1), macro = false;
+    if(token == "macro") {
+        macro = true;
+        token = "lambda";
     }
+    var localMethodCall = isString(token) && token.charAt(0) == ".";
+    if(localMethodCall || isJSReference(token)) {
+        var object = localMethodCall ? evaluate(value[1], localEnv) : "js/window";
+        object = isJSReference(object) ? object.slice(3) : object;
+        args = [["quote", object], ["quote", localMethodCall ? token.slice(1) : token.slice(3)]];
+        args = args.concat(value.slice(localMethodCall ? 2 : 1));
+        token = "externalcall";
+    }
+    var f = evaluate(token, localEnv);
+    if(["quote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
+        for(var i in args) args[i] = evaluate(args[i], localEnv);
+    var result = mineral.apply(localEnv, f, args, token);
+    if(macro) result["macro"] = macro;
+    //return f.macro ? evaluate(result, localEnv) : result;
+    return result;
 }
 
 function tokenize(code, memo, pos) {
@@ -195,6 +192,21 @@ function tokenize(code, memo, pos) {
     return tokenize(code, memo, pos+1);
 }
 
+function expand(code) {
+    if(isNIL(code) || !isList(code)) return code;
+    for(var i = 1; i < code.length; i++) code[i] = expand(code[i]);
+    if(code[0] in mineral && mineral[code[0]].macro) {
+        var r =  (evaluate(code))
+        return code[0] == "backquote"
+         ? evaluate(r)
+         : r;
+
+        /*return code[0] == "backquote"
+            ? evaluate(evaluate(code))
+            : evaluate(code);*/
+    } else return code;
+}
+
 function throwSyntaxError(pos, code) {
     throw("Syntax error at position " + pos + ": " + code);
 }
@@ -224,7 +236,7 @@ function normalize(code) {
 
 function interpret(input) {
     try {
-        return stringify(evaluate(parse(normalize(input))));
+        return stringify(evaluate(expand(parse(normalize(input)))));
     } catch(error) {
         return error;
     }
@@ -241,10 +253,16 @@ function loadFiles() {
     };
     var processText = function() {
         if (httpRequest.readyState === 4 && httpRequest.status === 200) {
-            content += normalize(httpRequest.responseText);
-            if(args.length == fileNr)
-                evaluate(parse(normalize("((lambda ()) " + content + ")")));
-            else loadFile();
+            content += httpRequest.responseText;
+            if(args.length == fileNr) {
+                content = "(" + content + ")";
+                var exps = parse(normalize(content));
+                for(var i in exps) {
+                    var x = expand(exps[i]);
+                    console.log(stringify(x));
+                    evaluate(x);
+                }
+            } else loadFile();
         }
     };
     httpRequest.onreadystatechange = processText;
