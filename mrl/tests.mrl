@@ -1,6 +1,5 @@
-(defmacro assert-equal
-  (n input output)
-  `(let (actual-output (js/interpret ~input))
+(defmacro assert-equal [n input output]
+  `(let [actual-output (js/interpret ~input)]
      (if (eq? ~output actual-output)
        (console-log (str "Test " ~n " successful: '" 
                          ~input "' -> '" ~output "'"))
@@ -95,17 +94,17 @@
 
     ))
 
-(defn process-tests (tests)
+(defn process-tests [tests]
   (if (empty? tests) ()
     (do (assert-equal (head tests) (second tests) (third tests))
       (process-tests (tail (tail (tail tests)))))))
 
-(defn run-tests ()
-  (let (get-time (% . (.getTime (new Date)))
+(defn run-tests []
+  (let [get-time (% . (.getTime (new Date)))
         start (get-time)
         result (process-tests (map str tests))
         end (- (get-time) start)
-        result (str "All tests executed in " end "ms."))
+        result (str "All tests executed in " end "ms.")]
     (do
       (console-log result)
       result)))

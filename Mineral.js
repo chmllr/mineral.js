@@ -204,8 +204,8 @@ function throwSyntaxError(pos, code) {
     throw("Syntax error at position " + pos + ": " + code);
 }
 
-function parse(code) {
-    return tokenize(code, [], 0)[0];
+function parse(string) {
+    return tokenize(string, [], 0)[0];
 }
 
 function stringify(code) {
@@ -215,16 +215,15 @@ function stringify(code) {
         return "(" + output.substring(0, output.length-1) + ")";
 }
 
-function normalize(code) {
+function normalize(string) {
     var patterns = [
-        // TODO: delete until the line end and not certain whitespace!
-        { "pattern": /;.*[\n\r]/g, "substitution": "" }, // comments
+        { "pattern": /;.*($|\n|\r)/g, "substitution": "" }, // comments
         { "pattern": /[\s\t\n\r]+/g, "substitution": " " }, // whitespace normalization
         { "pattern": /%([a-zA-Z\-\s]*?)?\./g, "substitution": "fn ($1)" } // lambda sugar
     ];
     for(var i in patterns)
-        code = code.replace(patterns[i].pattern, patterns[i].substitution);
-    return code.trim();
+        string = string.replace(patterns[i].pattern, patterns[i].substitution);
+    return string.trim();
 }
 
 function interpret(input) {
