@@ -1,6 +1,6 @@
 # README
 
-Mineral.js is a yet another Lisp in the browser started as an exercise after reading "The Roots of Lisp" paper by Paul Graham.
+Mineral.js is a yet another Lisp in the browser started as an exercise after reading "The Roots of Lisp" paper by Paul Graham. Mineral's syntax is heavily inspired by Clojure.
 
 ## Primitives
 

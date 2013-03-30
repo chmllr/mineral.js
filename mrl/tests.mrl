@@ -45,8 +45,8 @@
     28  `~'a a
     29  `(cons ~(if true 'first 'second) (cons ~(eq? 'a 'b) ())) (cons first (cons false ()))
     30  ((% x y z . (cons y (cons z ()))) (def f (% x . (eq? x 'a))) (f 'a) (f 'b)) (true false)
-    31  ((macro (x) `(cons ~x '(Z))) 'U) (U Z)
-    32  ((% x y . y) (defmacro mycons (a b) `(cons ~a ~b)) (mycons 'T '(S))) (T S)
+    31  ((macro (x) `(cons ~x '(Z))) 'U) (cons 'U '(Z))
+    32  ((% x y . y) (defmacro mycons (a b) `(cons ~a ~b)) (mycons 'T '(S))) (cons 'T '(S))
     33  ((% x y . y) (defn mycons (a b) (cons a b)) (mycons 'T '(S))) (T S)
     34  ((% x y . y) (defn f (a b & more) (cons a more)) (f 'X 'Y 'W 'O 'W)) (X W O W)
     35  ((% x y . y) (defn f (& opt) (cons 'OPTIONAL-ARGS opt)) (f 'X 'Y 'W 'O 'W)) (OPTIONAL-ARGS X Y W O W)

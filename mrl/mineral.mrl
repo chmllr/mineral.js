@@ -49,7 +49,7 @@
 ; VARIOUS
 
 (defmacro new (object & args)
-  `(.eval js/window (str "new " ~'object "()")))
+  `(.eval js/window (str "new " ~(list 'quote object) "()")))
 
 (defn infix-call (op a b)
   (.eval js/window (str a op b)))

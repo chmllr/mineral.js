@@ -152,7 +152,6 @@ function evaluate(value, localEnv) {
         for(var i in args) args[i] = evaluate(args[i], localEnv);
     var result = mineral.apply(localEnv, f, args, token);
     if(macro) result["macro"] = macro;
-    //return f.macro ? evaluate(result, localEnv) : result;
     return result;
 }
 
@@ -194,16 +193,10 @@ function tokenize(code, memo, pos) {
 
 function expand(code) {
     if(isNIL(code) || !isList(code)) return code;
-    for(var i = 1; i < code.length; i++) code[i] = expand(code[i]);
+    for(var i in code) code[i] = expand(code[i]);
     if(code[0] in mineral && mineral[code[0]].macro) {
-        var r =  (evaluate(code))
-        return code[0] == "backquote"
-         ? evaluate(r)
-         : r;
-
-        /*return code[0] == "backquote"
-            ? evaluate(evaluate(code))
-            : evaluate(code);*/
+        var result = evaluate(code)
+        return code[0] == "backquote" ? evaluate(result) : result;
     } else return code;
 }
 
@@ -255,13 +248,8 @@ function loadFiles() {
         if (httpRequest.readyState === 4 && httpRequest.status === 200) {
             content += httpRequest.responseText;
             if(args.length == fileNr) {
-                content = "(" + content + ")";
-                var exps = parse(normalize(content));
-                for(var i in exps) {
-                    var x = expand(exps[i]);
-                    console.log(stringify(x));
-                    evaluate(x);
-                }
+                var exps = parse(normalize("(" + content + ")"));
+                for(var i in exps) evaluate(expand(exps[i]));
             } else loadFile();
         }
     };
