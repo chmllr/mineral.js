@@ -4,13 +4,13 @@
 
 (def empty? (% coll . (eq? coll ())))
 
-(def list (lambda (& items) items))
+(def list (fn [& items] items))
 
 
 (def backquote-helper
   (% args .
      (if (empty? args) args
-       (if (atom args) (list 'quote args)
+       (if (atom? args) (list 'quote args)
          (if (eq? 'unquote (head args))
            (head (tail args))
            (list
@@ -18,92 +18,91 @@
              (backquote-helper (head args))
              (backquote-helper (tail args))))))))
 
-(def backquote (macro (exp) (list 'backquote-helper (list 'quote exp))))
+(def backquote
+  (macro [exp] 
+         (list 'backquote-helper (list 'quote exp))))
  
 ; MACROS
 
 (def defmacro
   (macro
-    (name args body)
+    [name args body]
     `(def ~name
        (macro ~args ~body))))
 
 (def defn
   (macro 
-    (name args body)
+    [name args body]
     `(def ~name
-       (lambda ~args ~body))))
+       (fn ~args ~body))))
 
-(defmacro let
-  (args exp)
-  (reduce
-    (% memo pair .
+(defmacro let [args exp]
+  (reduce-right
+    (% pair memo .
        (list 
-         (list 'lambda 
+         (list 'fn 
                (cons (head pair) ()) 
                memo)
          (second pair)))
     exp
-    (reverse (partition 2 args))))
+    (partition 2 args)))
 
 ; VARIOUS
 
-(defmacro new (object & args)
-  `(.eval js/window (str "new " ~(list 'quote object) "()")))
+(defmacro new [object & args]
+    `(.eval js/window 
+            (str "new " ~(list 'quote object) "()")))
 
-(defn infix-call (op a b)
+(defn infix-call [op a b]
   (.eval js/window (str a op b)))
 
 (def id (% x . x))
 
-(defn do
-  (& statements)
+(defn do [& statements]
   (last statements))
 
-(defmacro or (a b)
+(defmacro or [a b]
   `(if ~a true ~b))
 
-(defmacro and (a b)
+(defmacro and [a b]
   `(if ~a ~b false))
 
 ; LISTS CORE
 
-(defn
-  reduce (f memo coll)
+(defn reduce [f memo coll]
   (if (empty? coll)
     memo
     (reduce f
             (f memo (head coll))
             (tail coll))))
 
-(defn reduce-right (f memo coll)
+(defn reduce-right [f memo coll]
   (if (empty? coll)
     memo
     (f (head coll) (reduce-right f memo (tail coll)))))
 
-(defn map (f coll)
+(defn map [f coll]
   (if (empty? coll) 
     ()
     (cons
       (f (head coll))
       (map f (tail coll)))))
 
-(defn
-  reverse (coll)
+(defn reverse [coll]
   (reduce (% memo elem . (cons elem memo)) () coll))
 
 ; STRINGS
 
-(defn str (& strings)
+(defn str [& strings]
   (reduce-right 
     (% elem memo . (.concat (js/stringify elem) memo))
     ""
     strings))
 
-(defn console-log (string)
+(defn console-log [string]
   (.log js/console string))
 
-(defn console-error (string)
+(defn console-error [string]
   (.error js/console string))
 
 ; ARITHMETIC
@@ -114,29 +113,29 @@
 
 ; LISTS BONUS
 
-(defn take (n coll)
+(defn take [n coll]
   (if (or (eq? n 0) (empty? coll))
     ()
     (cons (head coll)
       (take (- n 1) (tail coll)))))
 
-(defn drop (n coll)
+(defn drop [n coll]
   (if (or (eq? n 0) (empty? coll))
     coll 
     (drop (- n 1) (tail coll))))
 
-(defn partition (n coll)
+(defn partition [n coll]
   (if (empty? coll)
     ()
     (cons (take n coll)
           (partition n (drop n coll)))))
 
-(defn second (coll) (head (tail coll)))
+(defn second [coll] (head (tail coll)))
 
-(defn third (coll) (head (tail (tail coll))))
+(defn third [coll] (head (tail (tail coll))))
 
-(defn last (l)
-  (let (elem (head l)
-             rest (tail l))
+(defn last [coll]
+  (let (elem (head coll)
+             rest (tail coll))
     (if (empty? rest) elem (last rest))))
 

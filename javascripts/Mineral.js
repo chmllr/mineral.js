@@ -46,7 +46,7 @@ var mineral = {
         return x;
     },
 
-    "atom":  function(x) {
+    "atom?":  function(x) {
         return !isList(x) || isNIL(x);
     },
 
@@ -74,7 +74,7 @@ var mineral = {
         return evaluate(value != false && !isNIL(value) ? thenAction : elseAction, localEnv);
     },
 
-    "lambda": function(bindings, exp) {
+    "fn": function(bindings, exp) {
         var optionalArgsSep = bindings.indexOf("&"), optionalBinding;
         if(optionalArgsSep >= 0 && bindings.length > optionalArgsSep+1) {
             optionalBinding = bindings[optionalArgsSep+1];
@@ -137,7 +137,7 @@ function evaluate(value, localEnv) {
     var token = value[0], args = value.slice(1), macro = false;
     if(token == "macro") {
         macro = true;
-        token = "lambda";
+        token = "fn";
     }
     var localMethodCall = isString(token) && token.charAt(0) == ".";
     if(localMethodCall || isJSReference(token)) {
@@ -148,7 +148,7 @@ function evaluate(value, localEnv) {
         token = "externalcall";
     }
     var f = evaluate(token, localEnv);
-    if(["quote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
+    if(["quote", "if", "fn", "def"].indexOf(token) < 0 && !f.macro)
         for(var i in args) args[i] = evaluate(args[i], localEnv);
     var result = mineral.apply(localEnv, f, args, token);
     if(macro) result["macro"] = macro;
@@ -204,8 +204,8 @@ function throwSyntaxError(pos, code) {
     throw("Syntax error at position " + pos + ": " + code);
 }
 
-function parse(code) {
-    return tokenize(code, [], 0)[0];
+function parse(string) {
+    return tokenize(string, [], 0)[0];
 }
 
 function stringify(code) {
@@ -215,16 +215,15 @@ function stringify(code) {
         return "(" + output.substring(0, output.length-1) + ")";
 }
 
-function normalize(code) {
+function normalize(string) {
     var patterns = [
-        // TODO: delete until the line end and not certain whitespace!
-        { "pattern": /;.*[\n\r]/g, "substitution": "" }, // comments
+        { "pattern": /;.*($|\n|\r)/g, "substitution": "" }, // comments
         { "pattern": /[\s\t\n\r]+/g, "substitution": " " }, // whitespace normalization
-        { "pattern": /%([a-zA-Z\-\s]*?)?\./g, "substitution": "lambda ($1)" } // lambda sugar
+        { "pattern": /%([a-zA-Z\-\s]*?)?\./g, "substitution": "fn ($1)" } // lambda sugar
     ];
     for(var i in patterns)
-        code = code.replace(patterns[i].pattern, patterns[i].substitution);
-    return code.trim();
+        string = string.replace(patterns[i].pattern, patterns[i].substitution);
+    return string.trim();
 }
 
 function interpret(input) {
