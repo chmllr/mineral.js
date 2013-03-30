@@ -4,13 +4,13 @@
 
 (def empty? (% coll . (eq? coll ())))
 
-(def list (lambda (& items) items))
+(def list (fn (& items) items))
 
 
 (def backquote-helper
   (% args .
      (if (empty? args) args
-       (if (atom args) (list 'quote args)
+       (if (atom? args) (list 'quote args)
          (if (eq? 'unquote (head args))
            (head (tail args))
            (list
@@ -32,14 +32,14 @@
   (macro 
     (name args body)
     `(def ~name
-       (lambda ~args ~body))))
+       (fn ~args ~body))))
 
 (defmacro let
   (args exp)
   (reduce
     (% memo pair .
        (list 
-         (list 'lambda 
+         (list 'fn 
                (cons (head pair) ()) 
                memo)
          (second pair)))

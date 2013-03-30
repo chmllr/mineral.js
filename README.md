@@ -5,13 +5,13 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
 ## Primitives
 
  - `quote`
- - `atom`
+ - `atom?`
  - `eq?`
  - `head`
  - `tail`
  - `cons`
  - `if`
- - `lambda`
+ - `fn`
  - `def`
  - `apply`
  - `externalcall` (to invoke native JS world)
@@ -20,12 +20,9 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
 
  - lambda function: `(% arg1 arg2 ... argN . s-expression)`
  - commenting out a s-exp by prepending with `#_`: `#_ (map f list)`
- - list `['a 'b 'c]` is `(list 'a 'b 'c)`
- - just as in Clojure, the argument lists _can_ use square brackets:
-  - `(lambda [a b] (+ a b))`
-  - `(defn f [a] (console-log a))`
+ - list `['a 'b 'c]` is the same as `('a 'b 'c)`
 
-## Differences with Lisp
+## Differences with Lisp From the Paper
 
  - `t` is `true`
  - `()` is `false`
@@ -34,6 +31,8 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
  - `cdr` is `tail`
  - `label` is `def`
  - `eq` is `eq?`
+ - `atom` is `atom?`
+ - `lambda` is `fn`
  - unquoting with `~`
 
 ## Interoperability with JS
