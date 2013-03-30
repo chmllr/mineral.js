@@ -13,13 +13,12 @@
 
 (defn process-command ()
   (if (eq? (.keyCode js/event) 13)
-    ;(let (content (.value mineral-console)
-    ;     position (+ 2 (.lastIndexOf content ">")))
-    (do
-      (def command (.slice (.value mineral-console) (+ 2 (.lastIndexOf (.value mineral-console) ">"))))
-      (.value mineral-console (str (.value mineral-console) "\n" (js/interpret command) "\n> "))
-      (.scrollTop mineral-console (.scrollHeight mineral-console))
-      (.preventDefault js/event)
-      false)
-    ;)
+    (let (content (.value mineral-console)
+          position (+ 2 (.lastIndexOf content ">")))
+      (do
+        (def command (.slice content position))
+        (.value mineral-console (str content "\n" (js/interpret command) "\n> "))
+        (.scrollTop mineral-console (.scrollHeight mineral-console))
+        (.preventDefault js/event)
+        false))
     true))

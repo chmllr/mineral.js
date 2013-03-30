@@ -38,7 +38,7 @@ function createEnvironment(oldEnv) {
 
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote" };
 
-var enclosureMap = { '(' : ')', '"' : '"' };
+var enclosureMap = { '(' : ')', '"' : '"', "[": "]" };
 
 var mineral = {
 
@@ -69,7 +69,7 @@ var mineral = {
         return [element].concat(list);
     },
 
-    "if": function(guard, thenAction, elseAction, localEnv) {
+    "if": function(localEnv, guard, thenAction, elseAction) {
         var value = evaluate(guard, localEnv);
         return evaluate(value != false && !isNIL(value) ? thenAction : elseAction, localEnv);
     },
@@ -82,7 +82,7 @@ var mineral = {
         }
         var lambda = function() {
             var args = Array.prototype.slice.call(arguments),
-                localEnv = isEnvironment(args[args.length-1]) ? args.pop() : createEnvironment();
+                localEnv = isEnvironment(args[0]) ? args.shift() : createEnvironment();
             for (var i in bindings) localEnv[bindings[i]] = args[i];
             if(optionalArgsSep >= 0)
                 localEnv[optionalBinding] = args.slice(bindings.length);
@@ -92,16 +92,16 @@ var mineral = {
         return lambda;
     },
 
-    "def": function(name, value) {
-        var localEnv = createEnvironment();
+    "def": function(localEnv, name, value) {
+        localEnv = createEnvironment(localEnv);
         localEnv[name] = function(x) { return mineral[name](x); };
         mineral[name] = evaluate(value, localEnv);
         if(name.indexOf("-") >= 0) mineral[name.replace(/-/g, "_")] = mineral[name] 
         return mineral[name];
     },
 
-    "apply": function(f, args, localEnv){
-        if(f.lambda) args.push(localEnv);
+    "apply": function(localEnv, f, args, token){
+        if(["if", "apply", "def"].indexOf(token) >= 0 || f.lambda) args.unshift(localEnv);
         return f.apply(this, args);
     },
 
@@ -134,30 +134,25 @@ function evaluate(value, localEnv) {
     localEnv = createEnvironment(localEnv);
     if(isNIL(value)) return [];
     if (!isList(value)) return resolve(value, localEnv);
-    else {
-        var token = value[0], args = value.slice(1), macro = false;
-        if(token == "macro") {
-            macro = true;
-            token = "lambda";
-        }
-        else if(token == "unquote")
-            null;
-        var localMethodCall = isString(token) && token.charAt(0) == ".";
-        if(localMethodCall || isJSReference(token)) {
-            var object = localMethodCall ? evaluate(value[1], localEnv) : "js/window";
-            object = isJSReference(object) ? object.slice(3) : object;
-            args = [["quote", object], ["quote", localMethodCall ? token.slice(1) : token.slice(3)]];
-            args = args.concat(value.slice(localMethodCall ? 2 : 1));
-            token = "externalcall";
-        }
-        var f = evaluate(token, localEnv);
-        if(["quote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
-            for(var i in args) args[i] = evaluate(args[i], localEnv);
-        if(["if", "apply"].indexOf(token) >= 0 || f.lambda) args.push(localEnv);
-        var result = f.apply(this, args);
-        if(macro) result["macro"] = macro;
-        return f.macro ? evaluate(result, localEnv) : result;
+    var token = value[0], args = value.slice(1), macro = false;
+    if(token == "macro") {
+        macro = true;
+        token = "lambda";
     }
+    var localMethodCall = isString(token) && token.charAt(0) == ".";
+    if(localMethodCall || isJSReference(token)) {
+        var object = localMethodCall ? evaluate(value[1], localEnv) : "js/window";
+        object = isJSReference(object) ? object.slice(3) : object;
+        args = [["quote", object], ["quote", localMethodCall ? token.slice(1) : token.slice(3)]];
+        args = args.concat(value.slice(localMethodCall ? 2 : 1));
+        token = "externalcall";
+    }
+    var f = evaluate(token, localEnv);
+    if(["quote", "if", "lambda", "macro", "def"].indexOf(token) < 0 && !f.macro)
+        for(var i in args) args[i] = evaluate(args[i], localEnv);
+    var result = mineral.apply(localEnv, f, args, token);
+    if(macro) result["macro"] = macro;
+    return result;
 }
 
 function tokenize(code, memo, pos) {
@@ -183,7 +178,7 @@ function tokenize(code, memo, pos) {
             else if(opener != closer && current == opener) enclosures++;
             else if(current == closer) enclosures--;
         }
-        result = opener == "(" 
+        result = opener != '"'
             ? tokenize(code.substring(oldPos+1, pos), [], 0)
             : opener + code.substring(oldPos+1, pos) + closer;
     } else while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
@@ -194,6 +189,15 @@ function tokenize(code, memo, pos) {
             result = [ops[i], result];
     if(memo[memo.length-1] == "#_") memo.pop(); else memo.push(result); 
     return tokenize(code, memo, pos+1);
+}
+
+function expand(code) {
+    if(isNIL(code) || !isList(code)) return code;
+    for(var i in code) code[i] = expand(code[i]);
+    if(code[0] in mineral && mineral[code[0]].macro) {
+        var result = evaluate(code)
+        return code[0] == "backquote" ? evaluate(result) : result;
+    } else return code;
 }
 
 function throwSyntaxError(pos, code) {
@@ -225,7 +229,7 @@ function normalize(code) {
 
 function interpret(input) {
     try {
-        return stringify(evaluate(parse(normalize(input))));
+        return stringify(evaluate(expand(parse(normalize(input)))));
     } catch(error) {
         return error;
     }
@@ -242,10 +246,11 @@ function loadFiles() {
     };
     var processText = function() {
         if (httpRequest.readyState === 4 && httpRequest.status === 200) {
-            content += normalize(httpRequest.responseText);
-            if(args.length == fileNr)
-                evaluate(parse(normalize("((lambda ()) " + content + ")")));
-            else loadFile();
+            content += httpRequest.responseText;
+            if(args.length == fileNr) {
+                var exps = parse(normalize("(" + content + ")"));
+                for(var i in exps) evaluate(expand(exps[i]));
+            } else loadFile();
         }
     };
     httpRequest.onreadystatechange = processText;

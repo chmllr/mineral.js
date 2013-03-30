@@ -1,6 +1,6 @@
 # README
 
-Mineral.js is a yet another Lisp in the browser started as an exercise after reading "The Roots of Lisp" paper by Paul Graham.
+Mineral.js is a yet another Lisp in the browser started as an exercise after reading "The Roots of Lisp" paper by Paul Graham. Mineral's syntax is heavily inspired by Clojure.
 
 ## Primitives
 
@@ -20,6 +20,10 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
 
  - lambda function: `(% arg1 arg2 ... argN . s-expression)`
  - commenting out a s-exp by prepending with `#_`: `#_ (map f list)`
+ - list `['a 'b 'c]` is `(list 'a 'b 'c)`
+ - just as in Clojure, the argument lists _can_ use square brackets:
+  - `(lambda [a b] (+ a b))`
+  - `(defn f [a] (console-log a))`
 
 ## Differences with Lisp
 
@@ -48,6 +52,10 @@ and can be set by using them as functions with arguments:
 
     ; sets the value of 'someId' to "hey"
     (.value (.getElementById js/document "someId") "hey")
+
+Creation of objects is straighforward:
+
+    (new Date)
 
 ## File Loading
 
