@@ -2,7 +2,7 @@
 
 ; PREPROCESSORS
 
-(def empty? (% coll . (eq? coll ())))
+(def empty? (% coll . (= coll ())))
 
 (def list (fn [& items] items))
 
@@ -10,8 +10,8 @@
 (def backquote-helper
   (% args .
      (if (empty? args) args
-       (if (atom? args) (list 'quote args)
-         (if (eq? 'unquote (head args))
+       (if (atom args) (list 'quote args)
+         (if (= 'unquote (head args))
            (head (tail args))
            (list
              'cons
@@ -82,9 +82,6 @@
       (f (head coll))
       (map f (tail coll)))))
 
-(defn reverse [coll]
-  (reduce (% memo elem . (cons elem memo)) () coll))
-
 ; LOGIC
 
 (defmacro or [& vals]
@@ -126,22 +123,35 @@
 
 ; LISTS BONUS
 
+(defn reverse [coll]
+  (reduce (% memo elem . (cons elem memo)) () coll))
+
+(defn push [elem coll]
+  ((% coll .
+      ((% x . coll) (.push coll elem)))
+      (.slice coll 0)))
+
+(defn range [n]
+  (if (= n 0) '(0)
+    (push n (range (- n 1)))))
+
+(defn slice-into [acc coll n]
+  (if (or (= n 0) (empty? coll)) (list acc coll)
+    (slice-into (push (head coll) acc) (tail coll) (- n 1))))
+
 (defn take [n coll]
-  (if (or (eq? n 0) (empty? coll))
-    ()
-    (cons (head coll)
-      (take (- n 1) (tail coll)))))
+  (head (slice-into () coll n)))
 
 (defn drop [n coll]
-  (if (or (eq? n 0) (empty? coll))
-    coll 
-    (drop (- n 1) (tail coll))))
+  (second (slice-into () coll n)))
 
 (defn partition [n coll]
   (if (empty? coll)
     ()
-    (cons (take n coll)
-          (partition n (drop n coll)))))
+    ((% pair .
+        (cons (head pair)
+              (partition n (second pair))))
+        (slice-into () coll n))))
 
 (defn second [coll] (head (tail coll)))
 
@@ -153,7 +163,7 @@
     (if (empty? rest) elem (last rest))))
 
 (defn nth [coll n]
-  (if (eq? n 0) (head coll)
+  (if (= n 0) (head coll)
     (nth (tail coll) (- n 1))))
 
 ; TODO: tail recursion!

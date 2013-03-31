@@ -5,8 +5,8 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
 ## Primitives
 
  - `quote`
- - `atom?`
- - `eq?`
+ - `atom`
+ - `=`
  - `head`
  - `tail`
  - `cons`
@@ -14,7 +14,7 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
  - `fn`
  - `def`
  - `apply`
- - `externalcall` (to invoke native JS world)
+ - `externalcall` (to invoke native JS functionality)
 
 ## Syntactic Sugar
 
@@ -30,8 +30,7 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
  - `car` is `head`
  - `cdr` is `tail`
  - `label` is `def`
- - `eq` is `eq?`
- - `atom` is `atom?`
+ - `eq` is `=`
  - `lambda` is `fn`
  - unquoting with `~`
 

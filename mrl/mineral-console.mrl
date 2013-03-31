@@ -34,9 +34,9 @@
   (let [code (.keyCode js/event)
         content (.value mineral-console)
         position (+ 2 (.lastIndexOf content ">"))
-        arrows-pressed (or (eq? code 38) (eq? code 40))
+        arrows-pressed (or (= code 38) (= code 40))
         index (if arrows-pressed
-                (if (eq? code 38) (move-pointer -) (move-pointer +)))
+                (if (= code 38) (move-pointer -) (move-pointer +)))
         cmds (cmds-list)]
     (if arrows-pressed
       (do
@@ -49,7 +49,7 @@
       true)))
 
 (defn process-command ()
-  (if (eq? (.keyCode js/event) 13)
+  (if (= (.keyCode js/event) 13)
     (let [content (.value mineral-console)
           position (+ 2 (.lastIndexOf content ">"))
           last-cmd (.slice content position)]
