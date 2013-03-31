@@ -71,8 +71,8 @@
     54  (js/stringify '(% a . (list a v))) "\"(fn (a) (list a v))\""
     55  ((% a-b c-d . (cons a-b c-d)) 'x-y ()) (x-y)
     56  ((% x . x) (def binde-strich 'TEST) binde-strich) TEST
-    57  (infix-call "+" 3 4) 7
-    58  (infix-call "^" 1 2) 3
+    57  (infixcall '+ 3 4) 7
+    58  (infixcall '^ 1 2) 3
     59  (^ 1 2) 3
     60  (+ 111 222) 333
     61  (- 111 222) -111
@@ -119,14 +119,14 @@
 
 (defmacro timer [exp]
   `(let [get-time (% . (.getTime (new Date)))
-        start (get-time)
-        result ~exp
-        time (- (get-time) start)]
-     (list result time)))
+         start (get-time)
+         result ~exp
+         time (- (get-time) start)]
+     (str time "ms")))
 
 (defn run-tests []
-  (let [l (timer (process-tests (map str tests)))
-        result (str "All tests executed in " (second l) "ms.")]
+  (let [time (timer (process-tests (map str tests)))
+        result (str "All tests executed in " time ".")]
     (do
       (console-log result)
       result)))

@@ -116,6 +116,22 @@ var mineral = {
         return isString(result) ? JSON.stringify(result) : result;
     },
 
+    "infixcall": function(op, a, b){
+        switch(op){
+            case '+': return a + b;
+            case '-': return a - b;
+            case '*': return a * b;
+            case '/': return a / b;
+            case '<': return a < b;
+            case '>': return a > b;
+            case '>=': return a >= b;
+            case '<=': return a <= b;
+            case '^': return a ^ b;
+            case '&': return a & b;
+            case '|': return a | b;
+        }
+    },
+
     "true": true,
     "false": false
 }

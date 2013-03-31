@@ -14,7 +14,8 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
  - `fn`
  - `def`
  - `apply`
- - `externalcall` (to invoke native JS functionality)
+ - `externalcall` (to apply JS functions)
+ - `infixcall` (to invoke JS infix operations)
 
 ## Syntactic Sugar
 
