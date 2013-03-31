@@ -5,8 +5,8 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
 ## Primitives
 
  - `quote`
- - `atom?`
- - `eq?`
+ - `atom`
+ - `=`
  - `head`
  - `tail`
  - `cons`
