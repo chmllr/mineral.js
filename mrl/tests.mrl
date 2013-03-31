@@ -90,7 +90,10 @@
     73  (let (x 'S) (def y x)) S
     74  '[1 2 3 4] (1 2 3 4)
     75  ((fn [a b] (+ a b)) 2 3) 5
-    75  ((defn f [a b] (* a b)) 2 3) 6
+    76  ((defn f [a b] (* a b)) 2 3) 6
+    77  (and true (eq? 'a 'a) (eq? 'a 'b)) false
+    78  (or false (eq? 'c 'a) (eq? 'a 'b)) false
+    79  (or false (eq? 'c 'a) (eq? 'a 'a)) true
 
     ))
 

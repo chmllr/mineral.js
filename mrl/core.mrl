@@ -87,11 +87,17 @@
 
 ; LOGIC
 
-(defmacro or [a b]
-  `(if ~a true ~b))
+(defmacro or [& vals]
+  `(reduce (% m e . 
+              (if m true e)) 
+           false
+           ~(cons 'list vals)))
 
-(defmacro and [a b]
-  `(if ~a ~b false))
+(defmacro and [& vals]
+  `(reduce (% m e . 
+              (if e m false)) 
+           true
+           ~(cons 'list vals)))
 
 ; STRINGS
 

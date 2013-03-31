@@ -1,9 +1,6 @@
 (def mineral-console
   (.getElementById js/document "mineralConsole"))
 
-(.pointer js/localStorage 0)
-(.commands js/localStorage "")
-
 (defn append-cmd [cmd]
   (.commands js/localStorage
              (str (.commands js/localStorage) "::" cmd)))
@@ -24,6 +21,8 @@
 
 (defn cmds-list []
   (tail (.split (.commands js/localStorage) "::")))
+
+(set-pointer (count (cmds-list)))
 
 (defn insert-last-command ()
   (let [code (.keyCode js/event)
