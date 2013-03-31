@@ -82,9 +82,6 @@
       (f (head coll))
       (map f (tail coll)))))
 
-(defn reverse [coll]
-  (reduce (% memo elem . (cons elem memo)) () coll))
-
 ; LOGIC
 
 (defmacro or [& vals]
@@ -126,22 +123,30 @@
 
 ; LISTS BONUS
 
+(defn reverse [coll]
+  (reduce (% memo elem . (cons elem memo)) () coll))
+
+(defn push [elem coll]
+  (do (.push coll elem)
+    coll))
+
+(defn slice-into [acc coll n]
+  (if (or (= n 0) (empty? coll)) (list (reverse acc) coll)
+    (slice-into (cons (head coll) acc) (tail coll) (- n 1))))
+
 (defn take [n coll]
-  (if (or (= n 0) (empty? coll))
-    ()
-    (cons (head coll)
-      (take (- n 1) (tail coll)))))
+  (head (slice-into () coll n)))
 
 (defn drop [n coll]
-  (if (or (= n 0) (empty? coll))
-    coll 
-    (drop (- n 1) (tail coll))))
+  (second (slice-into () coll n)))
 
 (defn partition [n coll]
   (if (empty? coll)
     ()
-    (cons (take n coll)
-          (partition n (drop n coll)))))
+    ((% pair .
+        (cons (head pair)
+              (partition n (second pair))))
+        (slice-into () coll n))))
 
 (defn second [coll] (head (tail coll)))
 

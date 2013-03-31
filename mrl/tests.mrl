@@ -95,6 +95,15 @@
     78  (or false (= 'c 'a) (not (= 'a 'a))) false
     79  (or false (= 'c 'a) (= 'a 'a)) true
     79  (if () 'A 'B) B
+    80  (empty? ()) true
+    81  (empty? '(a)) false
+    82  (reduce (% m e . (+ m e)) 0 '(1 2 3 4 5 6 7 8 9 10)) 55
+    83  (reduce-right (% m e . (* m e)) 1 '(1 2 3 4 5)) 120
+    84  (substr "hello world" 0 7) "\"hello w\""
+    85  (slice-into () '(1 2 3 4) 3) ((1 2 3) (4))
+    85  (slice-into () '(1 2 3 4) 8) ((1 2 3 4) ())
+    85  (partition 2 '(1 2 3 4 5)) ((1 2) (3 4) (5))
+    86  (push 'f '(4 5 f s)) (4 5 f s f)
 
     ))
 
