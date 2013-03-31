@@ -92,8 +92,9 @@
     75  ((fn [a b] (+ a b)) 2 3) 5
     76  ((defn f [a b] (* a b)) 2 3) 6
     77  (and true (eq? 'a 'a) (eq? 'a 'b)) false
-    78  (or false (eq? 'c 'a) (eq? 'a 'b)) false
+    78  (or false (eq? 'c 'a) (not (eq? 'a 'a))) false
     79  (or false (eq? 'c 'a) (eq? 'a 'a)) true
+    79  (if () 'A 'B) B
 
     ))
 

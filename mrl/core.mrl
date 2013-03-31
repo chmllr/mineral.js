@@ -99,6 +99,8 @@
            true
            ~(cons 'list vals)))
 
+(defn not [value] (if value false true))
+
 ; STRINGS
 
 (defn str [& strings]
