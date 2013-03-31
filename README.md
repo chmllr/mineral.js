@@ -30,8 +30,7 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
  - `car` is `head`
  - `cdr` is `tail`
  - `label` is `def`
- - `eq` is `eq?`
- - `atom` is `atom?`
+ - `eq` is `=`
  - `lambda` is `fn`
  - unquoting with `~`
 
