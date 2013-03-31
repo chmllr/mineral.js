@@ -2,7 +2,7 @@
 
 ; PREPROCESSORS
 
-(def empty? (% coll . (= coll ())))
+(def empty? (% coll . (eq coll ())))
 
 (def list (fn [& items] items))
 
@@ -11,7 +11,7 @@
   (% args .
      (if (empty? args) args
        (if (atom args) (list 'quote args)
-         (if (= 'unquote (head args))
+         (if (eq 'unquote (head args))
            (head (tail args))
            (list
              'cons
@@ -98,6 +98,19 @@
 
 (defn not [value] (if value false true))
 
+(defn eq-object [a b]
+  (if (atom a) (eq a b)
+    (and (eq (head a) (head b))
+         (eq-object (tail a) (tail b)))))
+
+(defn = [& values]
+  (second
+    (reduce (% m e .
+               (list e 
+                     (and (second m) (eq-object e (head m)))))
+            (list (head values) true) (tail values))))
+
+
 ; STRINGS
 
 (defn str [& strings]
@@ -163,7 +176,8 @@
     (if (empty? rest) elem (last rest))))
 
 (defn nth [coll n]
-  (if (= n 0) (head coll)
+  (if (< n 1)
+    (if (not (empty? coll)) (head coll))
     (nth (tail coll) (- n 1))))
 
 ; TODO: tail recursion!

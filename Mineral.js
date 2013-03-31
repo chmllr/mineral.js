@@ -50,7 +50,7 @@ var mineral = {
         return !isList(x) || isNIL(x);
     },
 
-    "=": function(a, b) {
+    "eq": function(a, b) {
         return a == b || (isNIL(a) && isNIL(b));
     },
 

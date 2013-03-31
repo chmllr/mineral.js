@@ -108,6 +108,7 @@
     90  (last (partition 2 (range 99))) (98 99)
     91  (nth (range 5) 3) 3
     92  (count (range 5)) 6
+    93  (= '(a b c) '(a b c)) true
 
     ))
 
@@ -116,15 +117,15 @@
     (do (assert-equal (head tests) (second tests) (third tests))
       (process-tests (tail (tail (tail tests)))))))
 
-(defmacro timer [f args]
+(defmacro timer [exp]
   `(let [get-time (% . (.getTime (new Date)))
         start (get-time)
-        result (~f ~args)
+        result ~exp
         time (- (get-time) start)]
      (list result time)))
 
 (defn run-tests []
-  (let [l (timer process-tests (map str tests))
+  (let [l (timer (process-tests (map str tests)))
         result (str "All tests executed in " (second l) "ms.")]
     (do
       (console-log result)
