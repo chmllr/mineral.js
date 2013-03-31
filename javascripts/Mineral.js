@@ -71,7 +71,7 @@ var mineral = {
 
     "if": function(localEnv, guard, thenAction, elseAction) {
         var value = evaluate(guard, localEnv);
-        return evaluate(value != false && !isNIL(value) ? thenAction : elseAction, localEnv);
+        return evaluate(!isNIL(value) && value ? thenAction : elseAction, localEnv);
     },
 
     "fn": function(bindings, exp) {

@@ -1,9 +1,15 @@
 (def mineral-console
   (.getElementById js/document "mineralConsole"))
 
+(defn get-cmds []
+  (.commands js/localStorage))
+
+(if (not (get-cmds))
+  (.commands js/localStorage ""))
+
 (defn append-cmd [cmd]
   (.commands js/localStorage
-             (str (.commands js/localStorage) "::" cmd)))
+             (str (get-cmds) "::" cmd)))
 
 (defn set-pointer [n]
   (.pointer js/localStorage n))
@@ -13,14 +19,14 @@
 
 (defmacro move-pointer [op]
   `(let [p (get-pointer)
-         np (~op (.pointer js/localStorage) 1)]
+         np (~op p 1)]
      (do
        (if (and (<= 0 np) (< np (count (cmds-list))))
-         (.pointer js/localStorage np))
+         (set-pointer np))
        np)))
 
 (defn cmds-list []
-  (tail (.split (.commands js/localStorage) "::")))
+  (tail (.split (get-cmds) "::")))
 
 (set-pointer (count (cmds-list)))
 
