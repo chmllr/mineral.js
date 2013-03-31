@@ -116,12 +116,16 @@
     (do (assert-equal (head tests) (second tests) (third tests))
       (process-tests (tail (tail (tail tests)))))))
 
-(defn run-tests []
-  (let [get-time (% . (.getTime (new Date)))
+(defmacro timer [f args]
+  `(let [get-time (% . (.getTime (new Date)))
         start (get-time)
-        result (process-tests (map str tests))
-        end (- (get-time) start)
-        result (str "All tests executed in " end "ms.")]
+        result (~f ~args)
+        time (- (get-time) start)]
+     (list result time)))
+
+(defn run-tests []
+  (let [l (timer process-tests (map str tests))
+        result (str "All tests executed in " (second l) "ms.")]
     (do
       (console-log result)
       result)))

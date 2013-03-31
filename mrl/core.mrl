@@ -169,7 +169,6 @@
 ; TODO: tail recursion!
 (defn count [coll]
   (if (empty? coll) 0 (+ 1 (count (tail coll)))))
-  
 
 ; ALIASES
 
