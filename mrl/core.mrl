@@ -61,12 +61,6 @@
 (defn do [& statements]
   (last statements))
 
-(defmacro or [a b]
-  `(if ~a true ~b))
-
-(defmacro and [a b]
-  `(if ~a ~b false))
-
 ; LISTS CORE
 
 (defn reduce [f memo coll]
@@ -91,6 +85,14 @@
 (defn reverse [coll]
   (reduce (% memo elem . (cons elem memo)) () coll))
 
+; LOGIC
+
+(defmacro or [a b]
+  `(if ~a true ~b))
+
+(defmacro and [a b]
+  `(if ~a ~b false))
+
 ; STRINGS
 
 (defn str [& strings]
@@ -105,11 +107,14 @@
 (defn console-error [string]
   (.error js/console string))
 
+(defn substr [string start end]
+  (.slice string start end))
+
 ; ARITHMETIC
 
 (map (% x . (js/interpret
               (js/stringify 
-                `(defn ~x (a b) (infix-call (str (quote ~x)) a b))))) '(+ - * / ^ & |))
+                `(defn ~x (a b) (infix-call (str (quote ~x)) a b))))) '(+ - * / < > >= <= ^ & |))
 
 ; LISTS BONUS
 
@@ -135,7 +140,20 @@
 (defn third [coll] (head (tail (tail coll))))
 
 (defn last [coll]
-  (let (elem (head coll)
-             rest (tail coll))
+  (let [elem (head coll)
+        rest (tail coll)]
     (if (empty? rest) elem (last rest))))
 
+(defn nth [coll n]
+  (if (eq? n 0) (head coll)
+    (nth (tail coll) (- n 1))))
+
+; TODO: tail recursion!
+(defn count [coll]
+  (if (empty? coll) 0 (+ 1 (count (tail coll)))))
+  
+
+; ALIASES
+
+(defn ! [& strings]
+  (console-log (apply str strings)))

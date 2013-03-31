@@ -1,23 +1,57 @@
 (def mineral-console
   (.getElementById js/document "mineralConsole"))
 
-(def command)
+(.pointer js/localStorage 0)
+(.commands js/localStorage "")
+
+(defn append-cmd [cmd]
+  (.commands js/localStorage
+             (str (.commands js/localStorage) "::" cmd)))
+
+(defn set-pointer [n]
+  (.pointer js/localStorage n))
+
+(defn get-pointer []
+  (| 0 (.pointer js/localStorage)))
+
+(defmacro move-pointer [op]
+  `(let [p (get-pointer)
+         np (~op (.pointer js/localStorage) 1)]
+     (do
+       (if (and (<= 0 np) (< np (count (cmds-list))))
+         (.pointer js/localStorage np))
+       np)))
+
+(defn cmds-list []
+  (tail (.split (.commands js/localStorage) "::")))
 
 (defn insert-last-command ()
-  (if (eq? (.keyCode js/event) '38)
-    (do
-      (.value mineral-console (str (.value mineral-console) command))
-      (.preventDefault js/event)
-      false)
-    true))
+  (let [code (.keyCode js/event)
+        content (.value mineral-console)
+        position (+ 2 (.lastIndexOf content ">"))
+        arrows-pressed (or (eq? code 38) (eq? code 40))
+        index (if arrows-pressed
+                (if (eq? code 38) (move-pointer -) (move-pointer +)))
+        cmds (cmds-list)]
+    (if arrows-pressed
+      (do
+        (.value mineral-console
+                (str (substr content 0 position) 
+                     (if (and (>= index 0) (< index (count cmds)))
+                       (nth cmds index) "")))
+        (.preventDefault js/event)
+        false)
+      true)))
 
 (defn process-command ()
   (if (eq? (.keyCode js/event) 13)
-    (let (content (.value mineral-console)
-          position (+ 2 (.lastIndexOf content ">")))
+    (let [content (.value mineral-console)
+          position (+ 2 (.lastIndexOf content ">"))
+          last-cmd (.slice content position)]
       (do
-        (def command (.slice content position))
-        (.value mineral-console (str content "\n" (js/interpret command) "\n> "))
+        (append-cmd last-cmd)
+        (set-pointer (count (cmds-list)))
+        (.value mineral-console (str content "\n" (js/interpret last-cmd) "\n> "))
         (.scrollTop mineral-console (.scrollHeight mineral-console))
         (.preventDefault js/event)
         false))
