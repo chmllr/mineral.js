@@ -2,7 +2,7 @@
 
 ; PREPROCESSORS
 
-(def empty? (% coll . (= coll ())))
+(def empty? (% coll . (eq coll ())))
 
 (def list (fn [& items] items))
 
@@ -11,7 +11,7 @@
   (% args .
      (if (empty? args) args
        (if (atom args) (list 'quote args)
-         (if (= 'unquote (head args))
+         (if (eq 'unquote (head args))
            (head (tail args))
            (list
              'cons
@@ -52,9 +52,6 @@
 (defmacro new [object & args]
     `(.eval js/window 
             (str "new " ~(list 'quote object) "()")))
-
-(defn infix-call [op a b]
-  (.eval js/window (str a op b)))
 
 (def id (% x . x))
 
@@ -98,6 +95,19 @@
 
 (defn not [value] (if value false true))
 
+(defn eq-object [a b]
+  (if (atom a) (eq a b)
+    (and (eq (head a) (head b))
+         (eq-object (tail a) (tail b)))))
+
+(defn = [& values]
+  (second
+    (reduce (% m e .
+               (list e 
+                     (and (second m) (eq-object e (head m)))))
+            (list (head values) true) (tail values))))
+
+
 ; STRINGS
 
 (defn str [& strings]
@@ -119,7 +129,7 @@
 
 (map (% x . (js/interpret
               (js/stringify 
-                `(defn ~x (a b) (infix-call (str (quote ~x)) a b))))) '(+ - * / < > >= <= ^ & |))
+                `(defn ~x (a b) (infixcall '~x a b))))) '(+ - * / < > >= <= ^ & |))
 
 ; LISTS BONUS
 
@@ -163,13 +173,13 @@
     (if (empty? rest) elem (last rest))))
 
 (defn nth [coll n]
-  (if (= n 0) (head coll)
+  (if (< n 1)
+    (if (not (empty? coll)) (head coll))
     (nth (tail coll) (- n 1))))
 
 ; TODO: tail recursion!
 (defn count [coll]
   (if (empty? coll) 0 (+ 1 (count (tail coll)))))
-  
 
 ; ALIASES
 

@@ -7,26 +7,33 @@
 (if (not (get-cmds))
   (.commands js/localStorage ""))
 
-(defn append-cmd [cmd]
-  (.commands js/localStorage
-             (str (get-cmds) "::" cmd)))
-
 (defn set-pointer [n]
   (.pointer js/localStorage n))
 
 (defn get-pointer []
-  (| 0 (.pointer js/localStorage)))
+  ; TODO: js string to int needed!
+  (.eval js/window (.pointer js/localStorage)))
 
 (defmacro move-pointer [op]
   `(let [p (get-pointer)
          np (~op p 1)]
      (do
-       (if (and (<= 0 np) (< np (count (cmds-list))))
+       (if (and (<= -1 np) (<= np (count (cmds-list))))
          (set-pointer np))
        np)))
 
 (defn cmds-list []
   (tail (.split (get-cmds) "::")))
+
+(defn append-cmd [cmd]
+  (let [cmds (cmds-list)
+        n (count cmds)
+        last-cmd (nth cmds (- n 1))]
+    (if (not (eq cmd last-cmd))
+      (do
+        (set-pointer (+ n 1))
+        (.commands js/localStorage
+                   (str (get-cmds) "::" cmd))))))
 
 (set-pointer (count (cmds-list)))
 
@@ -55,7 +62,6 @@
           last-cmd (.slice content position)]
       (do
         (append-cmd last-cmd)
-        (set-pointer (count (cmds-list)))
         (.value mineral-console (str content "\n" (js/interpret last-cmd) "\n> "))
         (.scrollTop mineral-console (.scrollHeight mineral-console))
         (.preventDefault js/event)

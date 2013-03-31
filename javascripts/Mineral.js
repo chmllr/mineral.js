@@ -50,7 +50,7 @@ var mineral = {
         return !isList(x) || isNIL(x);
     },
 
-    "=": function(a, b) {
+    "eq": function(a, b) {
         return a == b || (isNIL(a) && isNIL(b));
     },
 
@@ -114,6 +114,22 @@ var mineral = {
                         ? callee.apply(object, args)
                         : (args.length > 0 ? object[field] = args[0] : callee);
         return isString(result) ? JSON.stringify(result) : result;
+    },
+
+    "infixcall": function(op, a, b){
+        switch(op){
+            case '+': return a + b;
+            case '-': return a - b;
+            case '*': return a * b;
+            case '/': return a / b;
+            case '<': return a < b;
+            case '>': return a > b;
+            case '>=': return a >= b;
+            case '<=': return a <= b;
+            case '^': return a ^ b;
+            case '&': return a & b;
+            case '|': return a | b;
+        }
     },
 
     "true": true,
