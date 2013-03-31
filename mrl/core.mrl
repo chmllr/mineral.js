@@ -2,7 +2,7 @@
 
 ; PREPROCESSORS
 
-(def empty? (% coll . (eq? coll ())))
+(def empty? (% coll . (= coll ())))
 
 (def list (fn [& items] items))
 
@@ -10,8 +10,8 @@
 (def backquote-helper
   (% args .
      (if (empty? args) args
-       (if (atom? args) (list 'quote args)
-         (if (eq? 'unquote (head args))
+       (if (atom args) (list 'quote args)
+         (if (= 'unquote (head args))
            (head (tail args))
            (list
              'cons
@@ -127,13 +127,13 @@
 ; LISTS BONUS
 
 (defn take [n coll]
-  (if (or (eq? n 0) (empty? coll))
+  (if (or (= n 0) (empty? coll))
     ()
     (cons (head coll)
       (take (- n 1) (tail coll)))))
 
 (defn drop [n coll]
-  (if (or (eq? n 0) (empty? coll))
+  (if (or (= n 0) (empty? coll))
     coll 
     (drop (- n 1) (tail coll))))
 
@@ -153,7 +153,7 @@
     (if (empty? rest) elem (last rest))))
 
 (defn nth [coll n]
-  (if (eq? n 0) (head coll)
+  (if (= n 0) (head coll)
     (nth (tail coll) (- n 1))))
 
 ; TODO: tail recursion!

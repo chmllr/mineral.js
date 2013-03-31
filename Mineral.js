@@ -46,11 +46,11 @@ var mineral = {
         return x;
     },
 
-    "atom?":  function(x) {
+    "atom":  function(x) {
         return !isList(x) || isNIL(x);
     },
 
-    "eq?": function(a, b) {
+    "=": function(a, b) {
         return a == b || (isNIL(a) && isNIL(b));
     },
 
