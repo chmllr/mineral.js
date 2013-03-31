@@ -127,12 +127,17 @@
   (reduce (% memo elem . (cons elem memo)) () coll))
 
 (defn push [elem coll]
-  (do (.push coll elem)
-    coll))
+  ((% coll .
+      ((% x . coll) (.push coll elem)))
+      (.slice coll 0)))
+
+(defn range [n]
+  (if (= n 0) '(0)
+    (push n (range (- n 1)))))
 
 (defn slice-into [acc coll n]
-  (if (or (= n 0) (empty? coll)) (list (reverse acc) coll)
-    (slice-into (cons (head coll) acc) (tail coll) (- n 1))))
+  (if (or (= n 0) (empty? coll)) (list acc coll)
+    (slice-into (push (head coll) acc) (tail coll) (- n 1))))
 
 (defn take [n coll]
   (head (slice-into () coll n)))
