@@ -32,15 +32,9 @@ function isFunction(f) {
     return typeof f == "function";
 }
 
-function isEnvironment(object) {
-    return object && object.mineralEnvironmentObject == true;
-}
-
 function createEnvironment(oldEnv) {
     var newEnv = {};
-    // FIXME: clone arrays appropriatelly!
-    if(isEnvironment(oldEnv)) for(var key in oldEnv) newEnv[key] = oldEnv[key];
-    else newEnv.mineralEnvironmentObject = true;
+    if(oldEnv) for(var key in oldEnv) newEnv[key] = oldEnv[key];
     return newEnv;
 }
 
