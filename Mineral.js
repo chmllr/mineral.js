@@ -19,6 +19,7 @@ function isMineralString(x) {
 function mrlStringToJSString(string) {
     return string.slice(1,string.length-1)
                 .replace(/\\+/g, '\\')
+                .replace(/\\r/g, "\r")
                 .replace(/\\n/g, "\n")
                 .replace(/\\"/g, '"');
 }
@@ -41,6 +42,18 @@ function createEnvironment(oldEnv) {
     if(isEnvironment(oldEnv)) for(var key in oldEnv) newEnv[key] = oldEnv[key];
     else newEnv.mineralEnvironmentObject = true;
     return newEnv;
+}
+
+var cache = { }, cacheBlackList = ["event"];
+
+function cachedEval(object) {
+    if(!isString(object)) return object;
+    if(isMineralString(object)) return mrlStringToJSString(object);
+    var result = cache[object];
+    if(result != undefined) return result;
+    var result = eval(object);
+    if(cacheBlackList.indexOf(object) == -1) cache[object] = result;
+    return result;
 }
 
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote" };
@@ -235,7 +248,7 @@ function stringify(code) {
     if(!isList(code)) return code + "";
     var output = "";
     for(var i in code) output += stringify(code[i]) + " ";
-        return "(" + output.substring(0, output.length-1) + ")";
+    return "(" + output.substring(0, output.length-1) + ")";
 }
 
 function normalize(string) {
@@ -279,15 +292,3 @@ function loadFiles() {
     loadFile();
 }
 
-var cache = { };
-var cacheBlackList = ["event"];
-
-function cachedEval(object) {
-    if(!isString(object)) return object;
-    if(isMineralString(object)) return mrlStringToJSString(object);
-    var result = cache[object];
-    if(result != undefined) return result;
-    var result = eval(object);
-    if(cacheBlackList.indexOf(object) == -1) cache[object] = result;
-    return result;
-}
