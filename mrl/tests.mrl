@@ -48,7 +48,9 @@
     32  ((% x y . y) (defmacro mycons (a b) `(cons ~a ~b)) (mycons 'T '(S))) (cons 'T '(S))
     33  ((% x y . y) (defn mycons (a b) (cons a b)) (mycons 'T '(S))) (T S)
     34  ((% x y . y) (defn f (a b & more) (cons a more)) (f 'X 'Y 'W 'O 'W)) (X W O W)
-    35  ((% x y . y) (defn f (& opt) (cons 'OPTIONAL-ARGS opt)) (f 'X 'Y 'W 'O 'W)) (OPTIONAL-ARGS X Y W O W)
+    35  ((% x y . y)
+            (defn f (& opt) (cons 'OPTIONAL-ARGS opt)) 
+            (f 'X 'Y 'W 'O 'W)) (OPTIONAL-ARGS X Y W O W)
     36  (= (tail '(Z)) ()) true
     37  (reduce (% l e . (cons e l)) () '(A B C)) (C B A)
     38  (map (% v . (= v 'X)) '(X Y Z X Q)) (true false false true false)

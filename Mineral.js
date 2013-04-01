@@ -16,6 +16,13 @@ function isMineralString(x) {
     return isString(x) && x.match(/^".*"$/);
 }
 
+function mrlStringToJSString(string) {
+    return string.slice(1,string.length-1)
+                .replace(/\\+/g, '\\')
+                .replace(/\\n/g, "\n")
+                .replace(/\\"/g, '"');
+}
+
 function isJSReference(x) {
     return isString(x) && x.indexOf("js/") == 0;
 } 
@@ -107,8 +114,8 @@ var mineral = {
 
     "externalcall": function() {
         var args = Array.prototype.slice.call(arguments);
-        var object = eval(args[0]), field = args[1], args = args.slice(2);
-        for(var i in args) args[i] = isMineralString(args[i]) ? eval(args[i]) : args[i];
+        var object = cachedEval(args[0]), field = args[1], args = args.slice(2);
+        for(var i in args) args[i] = isMineralString(args[i]) ? mrlStringToJSString(args[i]) : args[i];
         var callee = object[field];
         var result = isFunction(callee)
                         ? callee.apply(object, args)
@@ -270,4 +277,17 @@ function loadFiles() {
     };
     httpRequest.onreadystatechange = processText;
     loadFile();
+}
+
+var cache = { };
+var cacheBlackList = ["event"];
+
+function cachedEval(object) {
+    if(!isString(object)) return object;
+    if(isMineralString(object)) return mrlStringToJSString(object);
+    var result = cache[object];
+    if(result != undefined) return result;
+    var result = eval(object);
+    if(cacheBlackList.indexOf(object) == -1) cache[object] = result;
+    return result;
 }
