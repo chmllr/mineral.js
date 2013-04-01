@@ -114,7 +114,6 @@ var mineral = {
 
     "def": function(localEnv, name, value) {
         localEnv = createEnvironment(localEnv);
-        localEnv[name] = function(x) { return mineral[name](x); };
         mineral[name] = evaluate(value, localEnv);
         if(name.indexOf("-") >= 0) mineral[name.replace(/-/g, "_")] = mineral[name] 
         return mineral[name];
