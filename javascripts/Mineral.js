@@ -13,12 +13,13 @@ function isString(x) {
 }
 
 function isMineralString(x) {
-    return isString(x) && x.match(/^".*"$/);
+    return isString(x) && x.charAt(0) == '"' && x.charAt(x.length-1) == '"';
 }
 
 function mrlStringToJSString(string) {
     return string.slice(1,string.length-1)
                 .replace(/\\+/g, '\\')
+                .replace(/\\r/g, "\r")
                 .replace(/\\n/g, "\n")
                 .replace(/\\"/g, '"');
 }
@@ -31,16 +32,22 @@ function isFunction(f) {
     return typeof f == "function";
 }
 
-function isEnvironment(object) {
-    return typeof object == "object" && object.mineralEnvironmentObject == true;
-}
-
 function createEnvironment(oldEnv) {
     var newEnv = {};
-    // FIXME: clone arrays appropriatelly!
-    if(isEnvironment(oldEnv)) for(var key in oldEnv) newEnv[key] = oldEnv[key];
-    else newEnv.mineralEnvironmentObject = true;
+    if(oldEnv) for(var key in oldEnv) newEnv[key] = oldEnv[key];
     return newEnv;
+}
+
+var cache = { }, cacheBlackList = ["event"];
+
+function cachedEval(object) {
+    if(!isString(object)) return object;
+    if(isMineralString(object)) return mrlStringToJSString(object);
+    var result = cache[object];
+    if(result != undefined) return result;
+    var result = eval(object);
+    if(cacheBlackList.indexOf(object) == -1) cache[object] = result;
+    return result;
 }
 
 var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote" };
@@ -89,7 +96,7 @@ var mineral = {
         }
         var lambda = function() {
             var args = Array.prototype.slice.call(arguments),
-                localEnv = isEnvironment(args[0]) ? args.shift() : createEnvironment();
+                localEnv = createEnvironment(args.shift());
             for (var i in bindings) localEnv[bindings[i]] = args[i];
             if(optionalArgsSep >= 0)
                 localEnv[optionalBinding] = args.slice(bindings.length);
@@ -100,8 +107,6 @@ var mineral = {
     },
 
     "def": function(localEnv, name, value) {
-        localEnv = createEnvironment(localEnv);
-        localEnv[name] = function(x) { return mineral[name](x); };
         mineral[name] = evaluate(value, localEnv);
         if(name.indexOf("-") >= 0) mineral[name.replace(/-/g, "_")] = mineral[name] 
         return mineral[name];
@@ -148,13 +153,12 @@ function resolve(id, localEnv) {
         || isMineralString(id) 
         || isJSReference(id)
         || typeof id == "number") return id;
-    if(id in localEnv) return localEnv[id];
+    if(localEnv && id in localEnv) return localEnv[id];
     if(id in mineral) return mineral[id];
     throw("The identifier '" + id + "' can't be resolved.");
 }
 
 function evaluate(value, localEnv) {
-    localEnv = createEnvironment(localEnv);
     if(isNIL(value)) return [];
     if (!isList(value)) return resolve(value, localEnv);
     var token = value[0], args = value.slice(1), macro = false;
@@ -235,7 +239,7 @@ function stringify(code) {
     if(!isList(code)) return code + "";
     var output = "";
     for(var i in code) output += stringify(code[i]) + " ";
-        return "(" + output.substring(0, output.length-1) + ")";
+    return "(" + output.substring(0, output.length-1) + ")";
 }
 
 function normalize(string) {
@@ -279,15 +283,3 @@ function loadFiles() {
     loadFile();
 }
 
-var cache = { };
-var cacheBlackList = ["event"];
-
-function cachedEval(object) {
-    if(!isString(object)) return object;
-    if(isMineralString(object)) return mrlStringToJSString(object);
-    var result = cache[object];
-    if(result != undefined) return result;
-    var result = eval(object);
-    if(cacheBlackList.indexOf(object) == -1) cache[object] = result;
-    return result;
-}
