@@ -13,7 +13,7 @@ function isString(x) {
 }
 
 function isMineralString(x) {
-    return isString(x) && x.match(/^".*"$/);
+    return isString(x) && x.charAt(0) == '"' && x.charAt(x.length-1) == '"';
 }
 
 function mrlStringToJSString(string) {
@@ -33,7 +33,7 @@ function isFunction(f) {
 }
 
 function isEnvironment(object) {
-    return typeof object == "object" && object.mineralEnvironmentObject == true;
+    return object && object.mineralEnvironmentObject == true;
 }
 
 function createEnvironment(oldEnv) {
@@ -102,7 +102,7 @@ var mineral = {
         }
         var lambda = function() {
             var args = Array.prototype.slice.call(arguments),
-                localEnv = isEnvironment(args[0]) ? args.shift() : createEnvironment();
+                localEnv = createEnvironment(args.shift());
             for (var i in bindings) localEnv[bindings[i]] = args[i];
             if(optionalArgsSep >= 0)
                 localEnv[optionalBinding] = args.slice(bindings.length);
@@ -113,7 +113,6 @@ var mineral = {
     },
 
     "def": function(localEnv, name, value) {
-        localEnv = createEnvironment(localEnv);
         mineral[name] = evaluate(value, localEnv);
         if(name.indexOf("-") >= 0) mineral[name.replace(/-/g, "_")] = mineral[name] 
         return mineral[name];
@@ -160,13 +159,12 @@ function resolve(id, localEnv) {
         || isMineralString(id) 
         || isJSReference(id)
         || typeof id == "number") return id;
-    if(id in localEnv) return localEnv[id];
+    if(localEnv && id in localEnv) return localEnv[id];
     if(id in mineral) return mineral[id];
     throw("The identifier '" + id + "' can't be resolved.");
 }
 
 function evaluate(value, localEnv) {
-    localEnv = createEnvironment(localEnv);
     if(isNIL(value)) return [];
     if (!isList(value)) return resolve(value, localEnv);
     var token = value[0], args = value.slice(1), macro = false;
