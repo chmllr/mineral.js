@@ -83,7 +83,8 @@ var mineral = {
         return [element].concat(list);
     },
 
-    "if": function(localEnv, guard, thenAction, elseAction) {
+    "if": function(guard, thenAction, elseAction) {
+        var localEnv = this.localEnv;
         var value = evaluate(guard, localEnv);
         return evaluate(!isNIL(value) && value ? thenAction : elseAction, localEnv);
     },
@@ -96,7 +97,7 @@ var mineral = {
         }
         var lambda = function() {
             var args = Array.prototype.slice.call(arguments),
-                localEnv = createEnvironment(args.shift());
+                localEnv = createEnvironment(this.localEnv);
             for (var i in bindings) localEnv[bindings[i]] = args[i];
             if(optionalArgsSep >= 0)
                 localEnv[optionalBinding] = args.slice(bindings.length);
@@ -106,14 +107,14 @@ var mineral = {
         return lambda;
     },
 
-    "def": function(localEnv, name, value) {
+    "def": function(name, value) {
+        var localEnv = this.localEnv;
         mineral[name] = evaluate(value, localEnv);
         if(name.indexOf("-") >= 0) mineral[name.replace(/-/g, "_")] = mineral[name] 
         return mineral[name];
     },
 
-    "apply": function(localEnv, f, args, token){
-        if(["if", "apply", "def"].indexOf(token) >= 0 || f.lambda) args.unshift(localEnv);
+    "apply": function(f, args, token){
         return f.apply(this, args);
     },
 
@@ -177,7 +178,8 @@ function evaluate(value, localEnv) {
     var f = evaluate(token, localEnv);
     if(["quote", "if", "fn", "def"].indexOf(token) < 0 && !f.macro)
         for(var i in args) args[i] = evaluate(args[i], localEnv);
-    var result = mineral.apply(localEnv, f, args, token);
+    mineral.localEnv = localEnv;
+    var result = mineral.apply(f, args, token);
     if(macro) result["macro"] = macro;
     return result;
 }
