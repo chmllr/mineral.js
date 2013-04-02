@@ -4,12 +4,16 @@ function isList(x) {
     return x instanceof Array;
 }
 
-function isNIL(x) {
-    return isList(x) && x.length == 0;
+function isFunction(f) {
+    return typeof f == "function";
 }
 
 function isString(x) {
     return typeof x == "string";
+}
+
+function isNIL(x) {
+    return isList(x) && x.length == 0;
 }
 
 function isMineralString(x) {
@@ -27,10 +31,6 @@ function mrlStringToJSString(string) {
 function isJSReference(x) {
     return isString(x) && x.indexOf("js/") == 0;
 } 
-
-function isFunction(f) {
-    return typeof f == "function";
-}
 
 function createEnvironment(oldEnv) {
     var newEnv = {};
@@ -74,9 +74,8 @@ var mineral = {
     },
 
     "tail": function(list) {
-        if(isNIL(list)) throw("Empty list has no tail!");
-        if(!isList(list)) throw "Exception in 'tail': " + list + " is not a list!";
-        return list.slice(1,list.length);
+        if(isNIL(list) || !isList(list)) throw "Exception in 'tail': can't work on " + list + "!";
+        return list.slice(1);
     },
 
     "cons": function(element, list) {

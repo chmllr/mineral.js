@@ -141,6 +141,7 @@
       ((% x . coll) (.push coll elem)))
       (.slice coll 0)))
 
+; TODO: tail recursion!
 (defn range [n]
   (if (= n 0) '(0)
     (push n (range (- n 1)))))
