@@ -58,7 +58,7 @@ function createEnvironment(oldEnv) {
 var cache = { }, cacheBlackList = ["event"];
 
 function cachedEval(object) {
-    if(isNIL(object) || !isAtom(object)) return object;
+    if(isList(object) || !isString(object) && !object.atom) return object;
     if(isMineralString(object)) return mrlStringToJSString(object);
     var result = cache[object.value];
     if(result != undefined) return result;
@@ -137,7 +137,6 @@ var mineral = {
     },
 
     "externalcall": function() {
-        try{
         var args = Array.prototype.slice.call(arguments);
         var object = cachedEval(args[0]), field = args[1], args = args.slice(2);
         for(var i in args) args[i] = isMineralString(args[i]) ? mrlStringToJSString(args[i]) : args[i];
@@ -146,10 +145,6 @@ var mineral = {
                         ? callee.apply(object, args)
                         : (args.length > 0 ? object[field] = args[0] : callee);
         return isString(result) ? JSON.stringify(result) : result;
-        } catch(e)
-        {
-        null;
-        }
     },
 
     "infixcall": function(op, a, b){
