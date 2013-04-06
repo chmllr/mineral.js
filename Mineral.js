@@ -216,7 +216,7 @@ function tokenize(code, memo, pos) {
         }
         result = opener != '"'
             ? tokenize(code.substring(oldPos+1, pos), [], 0)
-            : code.substring(oldPos+1, pos);
+            : eval('"' + code.substring(oldPos+1, pos) + '"');
     } else {
         while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
         if(!isNaN(result)) result = result | 0;
