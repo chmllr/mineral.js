@@ -58,7 +58,7 @@ function createEnvironment(oldEnv) {
 var cache = { }, cacheBlackList = ["event"];
 
 function cachedEval(object) {
-    if(!isAtom(object) || isNIL(object)) return object;
+    if(isNIL(object) || !isAtom(object)) return object;
     if(isMineralString(object)) return mrlStringToJSString(object);
     var result = cache[object.value];
     if(result != undefined) return result;
@@ -238,7 +238,7 @@ function tokenize(code, memo, pos) {
         while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
         if(!isNaN(result)) result = result | 0;
         if(result == "true" || result == "false") result = result == "true";
-        if(isString(result) && result != "&") result = new Atom(result);
+        if(isString(result) && result != "&" && result != "#_") result = new Atom(result);
     }
     if(sugared)
         for(var i in ops)
