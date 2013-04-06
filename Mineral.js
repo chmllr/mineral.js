@@ -24,18 +24,15 @@ function isNIL(x) {
     return isList(x) && x.length == 0;
 }
 
-/*
 function isAtom(x) {
     return x instanceof Atom;
 }
-*/
-// TODO: rename to isPrimitive
-function isAtom(x) {
+
+function isPrimitive(x) {
     return isNIL(x) || !isList(x);
 }
 
 function Atom (value) {
-    this.atom = true; //TODO: get rid of it
     this.value = value;
 }
 
@@ -52,7 +49,7 @@ function createEnvironment(oldEnv) {
 var cache = { }, cacheBlackList = ["event"];
 
 function cachedEval(object) {
-    if(!object.atom) return object;
+    if(!isAtom(object)) return object;
     var key = object.value;
     var result = cache[key];
     if(result != undefined) return result;
@@ -77,13 +74,13 @@ var mineral = {
     },
 
     "atom":  function(x) {
-        return isAtom(x);
+        return isPrimitive(x);
     },
 
     "eq": function(a, b) {
         return a == b 
             || (isNIL(a) && isNIL(b)) 
-            || a.atom != undefined && b.atom != undefined && a.value == b.value;
+            || isAtom(a) && isAtom(b) && a.value == b.value;
     },
 
     "head":  function(list) {
@@ -243,9 +240,9 @@ function tokenize(code, memo, pos) {
 }
 
 function expand(code) {
-    if(isAtom(code)) return code;
+    if(isPrimitive(code)) return code;
     for(var i in code) code[i] = expand(code[i]);
-    if(isAtom(code[0]) && code[0].value in mineral && mineral[code[0].value].macro) {
+    if(isPrimitive(code[0]) && code[0].value in mineral && mineral[code[0].value].macro) {
         var result = evaluate(code)
         return code[0].value == "backquote" ? evaluate(result) : result;
     } else return code;
@@ -260,7 +257,7 @@ function parse(string) {
 }
 
 function stringify(code) {
-    if(code.atom) return code.value;
+    if(isAtom(code)) return code.value;
     if(isString(code)) return JSON.stringify(code);
     if(!isList(code)) return code + '';
     var output = "";
