@@ -112,6 +112,7 @@
     92  (count (range 5)) 6
     93  (= '(a b c) '(a b c)) true
     94  ((defn f [n] (if (= 1 n) 1 (* n (f (- n 1))))) 5) 120
+    95  (str "a" '(map f "lol") 'c) "\"a(map f \\\"lol\\\")c\""
 
     ))
 
