@@ -4,33 +4,41 @@ function isList(x) {
     return x instanceof Array;
 }
 
-function isNIL(x) {
-    return isList(x) && x.length == 0;
+function isFunction(f) {
+    return typeof f == "function";
+}
+
+function isNumber(x) {
+    return typeof x == "number";
+}
+
+function isBoolean(x) {
+    return typeof x == "boolean";
 }
 
 function isString(x) {
     return typeof x == "string";
 }
 
-function isMineralString(x) {
-    return isString(x) && x.charAt(0) == '"' && x.charAt(x.length-1) == '"';
+function isNIL(x) {
+    return isList(x) && x.length == 0;
 }
 
-function mrlStringToJSString(string) {
-    return string.slice(1,string.length-1)
-                .replace(/\\+/g, '\\')
-                .replace(/\\r/g, "\r")
-                .replace(/\\n/g, "\n")
-                .replace(/\\"/g, '"');
+function isAtom(x) {
+    return x instanceof Atom;
+}
+
+function isPrimitive(x) {
+    return isNIL(x) || !isList(x);
+}
+
+function Atom (value) {
+    this.value = value;
 }
 
 function isJSReference(x) {
     return isString(x) && x.indexOf("js/") == 0;
 } 
-
-function isFunction(f) {
-    return typeof f == "function";
-}
 
 function createEnvironment(oldEnv) {
     var newEnv = {};
@@ -41,16 +49,21 @@ function createEnvironment(oldEnv) {
 var cache = { }, cacheBlackList = ["event"];
 
 function cachedEval(object) {
-    if(!isString(object)) return object;
-    if(isMineralString(object)) return mrlStringToJSString(object);
-    var result = cache[object];
+    if(!isAtom(object)) return object;
+    var key = object.value;
+    var result = cache[key];
     if(result != undefined) return result;
-    var result = eval(object);
-    if(cacheBlackList.indexOf(object) == -1) cache[object] = result;
+    var result = eval(key);
+    if(cacheBlackList.indexOf(key) == -1) cache[key] = result;
     return result;
 }
 
-var sugarMap = { "'" : "quote", "`": "backquote", "~": "unquote" };
+var atoms = { "quote" : new Atom("quote"), 
+            "backquote": new Atom("backquote"),
+            "unquote": new Atom("unquote"),
+            "jswindow": new Atom("js/window") };
+
+var sugarMap = { "'" : atoms.quote, "`": atoms.backquote, "~": atoms.unquote };
 
 var enclosureMap = { '(' : ')', '"' : '"', "[": "]" };
 
@@ -61,11 +74,13 @@ var mineral = {
     },
 
     "atom":  function(x) {
-        return !isList(x) || isNIL(x);
+        return isPrimitive(x);
     },
 
     "eq": function(a, b) {
-        return a == b || (isNIL(a) && isNIL(b));
+        return a == b 
+            || (isNIL(a) && isNIL(b)) 
+            || isAtom(a) && isAtom(b) && a.value == b.value;
     },
 
     "head":  function(list) {
@@ -74,16 +89,16 @@ var mineral = {
     },
 
     "tail": function(list) {
-        if(isNIL(list)) throw("Empty list has no tail!");
-        if(!isList(list)) throw "Exception in 'tail': " + list + " is not a list!";
-        return list.slice(1,list.length);
+        if(isNIL(list) || !isList(list)) throw "Exception in 'tail': can't work on " + list + "!";
+        return list.slice(1);
     },
 
     "cons": function(element, list) {
         return [element].concat(list);
     },
 
-    "if": function(localEnv, guard, thenAction, elseAction) {
+    "if": function(guard, thenAction, elseAction) {
+        var localEnv = this.localEnv;
         var value = evaluate(guard, localEnv);
         return evaluate(!isNIL(value) && value ? thenAction : elseAction, localEnv);
     },
@@ -96,40 +111,39 @@ var mineral = {
         }
         var lambda = function() {
             var args = Array.prototype.slice.call(arguments),
-                localEnv = createEnvironment(args.shift());
-            for (var i in bindings) localEnv[bindings[i]] = args[i];
+                localEnv = createEnvironment(this.localEnv);
+            for (var i in bindings) localEnv[bindings[i].value] = args[i];
             if(optionalArgsSep >= 0)
-                localEnv[optionalBinding] = args.slice(bindings.length);
+                localEnv[optionalBinding.value] = args.slice(bindings.length);
             return evaluate(exp, localEnv);
         };
         lambda["lambda"] = true;
         return lambda;
     },
 
-    "def": function(localEnv, name, value) {
-        mineral[name] = evaluate(value, localEnv);
-        if(name.indexOf("-") >= 0) mineral[name.replace(/-/g, "_")] = mineral[name] 
-        return mineral[name];
+    "def": function(name, value) {
+        var localEnv = this.localEnv;
+        mineral[name.value] = evaluate(value, localEnv);
+        if(name.value.indexOf("-") >= 0) mineral[name.value.replace(/-/g, "_")] = mineral[name.value] 
+        return mineral[name.value];
     },
 
-    "apply": function(localEnv, f, args, token){
-        if(["if", "apply", "def"].indexOf(token) >= 0 || f.lambda) args.unshift(localEnv);
+    "apply": function(f, args, token){
         return f.apply(this, args);
     },
 
     "externalcall": function() {
         var args = Array.prototype.slice.call(arguments);
         var object = cachedEval(args[0]), field = args[1], args = args.slice(2);
-        for(var i in args) args[i] = isMineralString(args[i]) ? mrlStringToJSString(args[i]) : args[i];
         var callee = object[field];
         var result = isFunction(callee)
                         ? callee.apply(object, args)
                         : (args.length > 0 ? object[field] = args[0] : callee);
-        return isString(result) ? JSON.stringify(result) : result;
+        return result;
     },
 
     "infixcall": function(op, a, b){
-        switch(op){
+        switch(op.value){
             case '+': return a + b;
             case '-': return a - b;
             case '*': return a * b;
@@ -150,34 +164,38 @@ var mineral = {
 
 function resolve(id, localEnv) {
     if(id == undefined 
-        || isMineralString(id) 
-        || isJSReference(id)
-        || typeof id == "number") return id;
-    if(localEnv && id in localEnv) return localEnv[id];
-    if(id in mineral) return mineral[id];
-    throw("The identifier '" + id + "' can't be resolved.");
+        || isNumber(id)
+        || isBoolean(id)
+        || isString(id)
+        || isJSReference(id.value)) return id;
+    if(localEnv && id.value in localEnv) return localEnv[id.value];
+    if(id.value in mineral) return mineral[id.value];
+    throw("The identifier '" + id.value + "' can't be resolved.");
 }
 
 function evaluate(value, localEnv) {
     if(isNIL(value)) return [];
     if (!isList(value)) return resolve(value, localEnv);
-    var token = value[0], args = value.slice(1), macro = false;
+    var func = value[0], token = func.value, args = value.slice(1), macro = false;
     if(token == "macro") {
         macro = true;
-        token = "fn";
+        token = "fn"
+        func = new Atom(token);
     }
     var localMethodCall = isString(token) && token.charAt(0) == ".";
     if(localMethodCall || isJSReference(token)) {
-        var object = localMethodCall ? evaluate(value[1], localEnv) : "js/window";
-        object = isJSReference(object) ? object.slice(3) : object;
-        args = [["quote", object], ["quote", localMethodCall ? token.slice(1) : token.slice(3)]];
+        var object = localMethodCall ? evaluate(value[1], localEnv) : atoms.jswindow;
+        object = isJSReference(object.value) ? new Atom(object.value.slice(3)) : object;
+        args = [[atoms.quote, object], [atoms.quote, localMethodCall ? token.slice(1) : token.slice(3)]];
         args = args.concat(value.slice(localMethodCall ? 2 : 1));
         token = "externalcall";
+        func = new Atom(token);
     }
-    var f = evaluate(token, localEnv);
+    var f = evaluate(func, localEnv);
     if(["quote", "if", "fn", "def"].indexOf(token) < 0 && !f.macro)
         for(var i in args) args[i] = evaluate(args[i], localEnv);
-    var result = mineral.apply(localEnv, f, args, token);
+    mineral.localEnv = localEnv;
+    var result = mineral.apply(f, args, token);
     if(macro) result["macro"] = macro;
     return result;
 }
@@ -207,10 +225,13 @@ function tokenize(code, memo, pos) {
         }
         result = opener != '"'
             ? tokenize(code.substring(oldPos+1, pos), [], 0)
-            : opener + code.substring(oldPos+1, pos) + closer;
-    } else while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
-    if(!isList(result) && !isNaN(result)) result = result | 0;
-    if(result == "true" || result == "false") result = result == "true";
+            : eval('"' + code.substring(oldPos+1, pos) + '"');
+    } else {
+        while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
+        if(!isNaN(result)) result = result | 0;
+        if(result == "true" || result == "false") result = result == "true";
+        if(isString(result) && result != "&" && result != "#_") result = new Atom(result);
+    }
     if(sugared)
         for(var i in ops)
             result = [ops[i], result];
@@ -219,11 +240,11 @@ function tokenize(code, memo, pos) {
 }
 
 function expand(code) {
-    if(isNIL(code) || !isList(code)) return code;
+    if(isPrimitive(code)) return code;
     for(var i in code) code[i] = expand(code[i]);
-    if(code[0] in mineral && mineral[code[0]].macro) {
+    if(isPrimitive(code[0]) && code[0].value in mineral && mineral[code[0].value].macro) {
         var result = evaluate(code)
-        return code[0] == "backquote" ? evaluate(result) : result;
+        return code[0].value == "backquote" ? evaluate(result) : result;
     } else return code;
 }
 
@@ -236,7 +257,9 @@ function parse(string) {
 }
 
 function stringify(code) {
-    if(!isList(code)) return code + "";
+    if(isAtom(code)) return code.value;
+    if(isString(code)) return JSON.stringify(code);
+    if(!isList(code)) return code + '';
     var output = "";
     for(var i in code) output += stringify(code[i]) + " ";
     return "(" + output.substring(0, output.length-1) + ")";

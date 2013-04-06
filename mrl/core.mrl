@@ -107,14 +107,13 @@
                      (and (second m) (eq-object e (head m)))))
             (list (head values) true) (tail values))))
 
-
 ; STRINGS
 
+(defn str-primitive [arg]
+  (if (js/isString arg) arg (js/stringify arg)))
+
 (defn str [& strings]
-  (reduce-right 
-    (% elem memo . (.concat (js/stringify elem) memo))
-    ""
-    strings))
+  (.join (map str-primitive strings) ""))
 
 (defn console-log [string]
   (.log js/console string))
@@ -141,6 +140,7 @@
       ((% x . coll) (.push coll elem)))
       (.slice coll 0)))
 
+; TODO: tail recursion!
 (defn range [n]
   (if (= n 0) '(0)
     (push n (range (- n 1)))))
