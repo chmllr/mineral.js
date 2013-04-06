@@ -56,7 +56,9 @@ function cachedEval(object) {
     return result;
 }
 
-var sugarMap = { "'" : new Atom("quote"), "`": new Atom("backquote"), "~": new Atom("unquote") };
+var atoms = { "quote" : new Atom("quote"), "backquote": new Atom("backquote"), "unquote": new Atom("unquote") };
+
+var sugarMap = { "'" : atoms.quote, "`": atoms.backquote, "~": atoms.unquote };
 
 var enclosureMap = { '(' : ')', '"' : '"', "[": "]" };
 
@@ -169,20 +171,22 @@ function resolve(id, localEnv) {
 function evaluate(value, localEnv) {
     if(isNIL(value)) return [];
     if (!isList(value)) return resolve(value, localEnv);
-    var token = value[0].value, args = value.slice(1), macro = false;
+    var func = value[0], token = func.value, args = value.slice(1), macro = false;
     if(token == "macro") {
         macro = true;
-        token = "fn";
+        token = "fn"
+        func = new Atom(token);
     }
     var localMethodCall = isString(token) && token.charAt(0) == ".";
     if(localMethodCall || isJSReference(token)) {
         var object = localMethodCall ? evaluate(value[1], localEnv) : new Atom("js/window");
         object = isJSReference(object.value) ? new Atom(object.value.slice(3)) : object;
-        args = [[new Atom("quote"), object], [new Atom("quote"), localMethodCall ? token.slice(1) : token.slice(3)]];
+        args = [[atoms.quote, object], [atoms.quote, localMethodCall ? token.slice(1) : token.slice(3)]];
         args = args.concat(value.slice(localMethodCall ? 2 : 1));
         token = "externalcall";
+        func = new Atom(token);
     }
-    var f = evaluate(value[0].atom ? new Atom(token) : value[0], localEnv);
+    var f = evaluate(func, localEnv);
     if(["quote", "if", "fn", "def"].indexOf(token) < 0 && !f.macro)
         for(var i in args) args[i] = evaluate(args[i], localEnv);
     mineral.localEnv = localEnv;
