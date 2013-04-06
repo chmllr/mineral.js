@@ -24,12 +24,18 @@ function isNIL(x) {
     return isList(x) && x.length == 0;
 }
 
+/*
+function isAtom(x) {
+    return x instanceof Atom;
+}
+*/
+// TODO: rename to isPrimitive
 function isAtom(x) {
     return isNIL(x) || !isList(x);
 }
 
 function Atom (value) {
-    this.atom = true;
+    this.atom = true; //TODO: get rid of it
     this.value = value;
 }
 
@@ -46,17 +52,19 @@ function createEnvironment(oldEnv) {
 var cache = { }, cacheBlackList = ["event"];
 
 function cachedEval(object) {
-    if(isList(object) || !isString(object) && !object.atom) return object;
-    var result = cache[object.value];
+    if(!object.atom) return object;
+    var key = object.value;
+    var result = cache[key];
     if(result != undefined) return result;
-    var result = eval(object.value);
-    // TODO: remove me
-    if(result == undefined) return object; 
-    if(cacheBlackList.indexOf(object) == -1) cache[object] = result;
+    var result = eval(key);
+    if(cacheBlackList.indexOf(key) == -1) cache[key] = result;
     return result;
 }
 
-var atoms = { "quote" : new Atom("quote"), "backquote": new Atom("backquote"), "unquote": new Atom("unquote") };
+var atoms = { "quote" : new Atom("quote"), 
+            "backquote": new Atom("backquote"),
+            "unquote": new Atom("unquote"),
+            "jswindow": new Atom("js/window") };
 
 var sugarMap = { "'" : atoms.quote, "`": atoms.backquote, "~": atoms.unquote };
 
@@ -179,7 +187,7 @@ function evaluate(value, localEnv) {
     }
     var localMethodCall = isString(token) && token.charAt(0) == ".";
     if(localMethodCall || isJSReference(token)) {
-        var object = localMethodCall ? evaluate(value[1], localEnv) : new Atom("js/window");
+        var object = localMethodCall ? evaluate(value[1], localEnv) : atoms.jswindow;
         object = isJSReference(object.value) ? new Atom(object.value.slice(3)) : object;
         args = [[atoms.quote, object], [atoms.quote, localMethodCall ? token.slice(1) : token.slice(3)]];
         args = args.concat(value.slice(localMethodCall ? 2 : 1));
