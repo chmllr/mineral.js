@@ -54,14 +54,14 @@
     36  (= (tail '(Z)) ()) true
     37  (reduce (% l e . (cons e l)) () '(A B C)) (C B A)
     38  (map (% v . (= v 'X)) '(X Y Z X Q)) (true false false true false)
-    39  (.concat "AB" "CD") "\"ABCD\""
-    40  "\"test\""  "\"test\""
+    39  (.concat "AB" "CD") "ABCD"
+    40  "test"  "test"
     41  (cons "hi" (cons "hey" '("hello"))) ("hi" "hey" "hello")
     42  (= "test" 'test) false
-    43  (str "con" #_ "comment" "ca" "te" "na" "tion") "\"concatenation\""
+    43  (str "con" #_ "comment" "ca" "te" "na" "tion") "concatenation"
     44  (= "test" "test") true
     45  (apply (% x y z . (cons x (cons y z))) '(a b ())) (a b)
-    46  (apply str '(true false "test")) "\"truefalsetest\""
+    46  (apply str '(true false "test")) "truefalsetest"
     47  ((% x . ((% y . x))) 'Z) Z
     48  (apply (% x y . x) '(T F)) T
     49  (apply (% x y . y) '(T F)) F
@@ -70,7 +70,7 @@
     51  (let (x 'A y ()) (cons x y)) (A)
     52  (last '(a b c d e f g)) g
     53  (map str '(% a #_ (gar bage) . (list a v))) "(\"fn\" \"(a)\" \"(list a v)\")"
-    54  (js/stringify '(% a . (list a v))) "\"(fn (a) (list a v))\""
+    54  (js/stringify '(% a . (list a v))) "(fn (a) (list a v))"
     55  ((% a-b c-d . (cons a-b c-d)) 'x-y ()) (x-y)
     56  ((% x . x) (def binde-strich 'TEST) binde-strich) TEST
     57  (infixcall '+ 3 4) 7
@@ -101,7 +101,7 @@
     81  (empty? '(a)) false
     82  (reduce (% m e . (+ m e)) 0 '(1 2 3 4 5 6 7 8 9 10)) 55
     83  (reduce-right (% m e . (* m e)) 1 '(1 2 3 4 5)) 120
-    84  (substr "hello world" 0 7) "\"hello w\""
+    84  (substr "hello world" 0 7) "hello w"
     85  (slice-into () '(1 2 3 4) 3) ((1 2 3) (4))
     86  (slice-into () '(1 2 3 4) 8) ((1 2 3 4) ())
     87  (partition 2 '(1 2 3 4 5)) ((1 2) (3 4) (5))

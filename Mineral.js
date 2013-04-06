@@ -33,18 +33,6 @@ function Atom (value) {
     this.value = value;
 }
 
-function isMineralString(x) {
-    return isString(x) && x.charAt(0) == '"' && x.charAt(x.length-1) == '"';
-}
-
-function mrlStringToJSString(string) {
-    return string.slice(1,string.length-1)
-                .replace(/\\+/g, '\\')
-                .replace(/\\r/g, "\r")
-                .replace(/\\n/g, "\n")
-                .replace(/\\"/g, '"');
-}
-
 function isJSReference(x) {
     return isString(x) && x.indexOf("js/") == 0;
 } 
@@ -59,10 +47,11 @@ var cache = { }, cacheBlackList = ["event"];
 
 function cachedEval(object) {
     if(isList(object) || !isString(object) && !object.atom) return object;
-    if(isMineralString(object)) return mrlStringToJSString(object);
     var result = cache[object.value];
     if(result != undefined) return result;
     var result = eval(object.value);
+    // TODO: remove me
+    if(result == undefined) return object; 
     if(cacheBlackList.indexOf(object) == -1) cache[object] = result;
     return result;
 }
@@ -139,12 +128,11 @@ var mineral = {
     "externalcall": function() {
         var args = Array.prototype.slice.call(arguments);
         var object = cachedEval(args[0]), field = args[1], args = args.slice(2);
-        for(var i in args) args[i] = isMineralString(args[i]) ? mrlStringToJSString(args[i]) : args[i];
         var callee = object[field];
         var result = isFunction(callee)
                         ? callee.apply(object, args)
                         : (args.length > 0 ? object[field] = args[0] : callee);
-        return isString(result) ? JSON.stringify(result) : result;
+        return result;
     },
 
     "infixcall": function(op, a, b){
@@ -171,7 +159,7 @@ function resolve(id, localEnv) {
     if(id == undefined 
         || isNumber(id)
         || isBoolean(id)
-        || isMineralString(id) 
+        || isString(id)
         || isJSReference(id.value)) return id;
     if(localEnv && id.value in localEnv) return localEnv[id.value];
     if(id.value in mineral) return mineral[id.value];
@@ -228,7 +216,7 @@ function tokenize(code, memo, pos) {
         }
         result = opener != '"'
             ? tokenize(code.substring(oldPos+1, pos), [], 0)
-            : opener + code.substring(oldPos+1, pos) + closer;
+            : code.substring(oldPos+1, pos);
     } else {
         while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
         if(!isNaN(result)) result = result | 0;
@@ -261,7 +249,8 @@ function parse(string) {
 
 function stringify(code) {
     if(code.atom) return code.value;
-    if(!isList(code)) return code + "";
+    if(isString(code)) return JSON.stringify(code);
+    if(!isList(code)) return code + '';
     var output = "";
     for(var i in code) output += stringify(code[i]) + " ";
     return "(" + output.substring(0, output.length-1) + ")";
