@@ -98,9 +98,9 @@ var mineral = {
     },
 
     "if": function(guard, thenAction, elseAction) {
-        var localEnv = this.localEnv;
-        var value = evaluate(guard, localEnv);
-        return evaluate(!isNIL(value) && value ? thenAction : elseAction, localEnv);
+        var env = this.env;
+        var value = evaluate(guard, env);
+        return evaluate(!isNIL(value) && value ? thenAction : elseAction, env);
     },
 
     "fn": function(bindings, exp) {
@@ -110,20 +110,21 @@ var mineral = {
             bindings = bindings.slice(0,optionalArgsSep);
         }
         var lambda = function() {
-            var args = Array.prototype.slice.call(arguments),
-                localEnv = createEnvironment(this.localEnv);
-            for (var i in bindings) localEnv[bindings[i].value] = args[i];
-            if(optionalArgsSep >= 0)
-                localEnv[optionalBinding.value] = args.slice(bindings.length);
-            return evaluate(exp, localEnv);
+            var env = createEnvironment(this.env);
+            for (var i in bindings) env[bindings[i].value] = arguments[i];
+            if(optionalArgsSep >= 0) {
+                var args = Array.prototype.slice.call(arguments);
+                env[optionalBinding.value] = args.slice(bindings.length);
+            }
+            return evaluate(exp, env);
         };
         lambda["lambda"] = true;
         return lambda;
     },
 
     "def": function(name, value) {
-        var localEnv = this.localEnv;
-        mineral[name.value] = evaluate(value, localEnv);
+        var env = this.env;
+        mineral[name.value] = evaluate(value, env);
         if(name.value.indexOf("-") >= 0) mineral[name.value.replace(/-/g, "_")] = mineral[name.value] 
         return mineral[name.value];
     },
@@ -162,20 +163,20 @@ var mineral = {
     "false": false
 }
 
-function resolve(id, localEnv) {
+function resolve(id, env) {
     if(id == undefined 
         || isNumber(id)
         || isBoolean(id)
         || isString(id)
         || isJSReference(id.value)) return id;
-    if(localEnv && id.value in localEnv) return localEnv[id.value];
+    if(env && id.value in env) return env[id.value];
     if(id.value in mineral) return mineral[id.value];
     throw("The identifier '" + id.value + "' can't be resolved.");
 }
 
-function evaluate(value, localEnv) {
+function evaluate(value, env) {
     if(isNIL(value)) return [];
-    if (!isList(value)) return resolve(value, localEnv);
+    if (!isList(value)) return resolve(value, env);
     var func = value[0], token = func.value, args = value.slice(1), macro = false;
     if(token == "macro") {
         macro = true;
@@ -184,17 +185,17 @@ function evaluate(value, localEnv) {
     }
     var localMethodCall = isString(token) && token.charAt(0) == ".";
     if(localMethodCall || isJSReference(token)) {
-        var object = localMethodCall ? evaluate(value[1], localEnv) : atoms.jswindow;
+        var object = localMethodCall ? evaluate(value[1], env) : atoms.jswindow;
         object = isJSReference(object.value) ? new Atom(object.value.slice(3)) : object;
         args = [[atoms.quote, object], [atoms.quote, localMethodCall ? token.slice(1) : token.slice(3)]];
         args = args.concat(value.slice(localMethodCall ? 2 : 1));
         token = "externalcall";
         func = new Atom(token);
     }
-    var f = evaluate(func, localEnv);
+    var f = evaluate(func, env);
     if(["quote", "if", "fn", "def"].indexOf(token) < 0 && !f.macro)
-        for(var i in args) args[i] = evaluate(args[i], localEnv);
-    mineral.localEnv = localEnv;
+        for(var i in args) args[i] = evaluate(args[i], env);
+    mineral.env = env;
     var result = mineral.apply(f, args, token);
     if(macro) result["macro"] = macro;
     return result;
