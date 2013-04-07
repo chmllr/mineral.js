@@ -2,21 +2,19 @@
 
 ; PREPROCESSORS
 
-(def empty? (% coll . (eq coll ())))
-
 (def list (fn [& items] items))
-
 
 (def backquote-helper
   (% args .
-     (if (empty? args) args
+     (if args
        (if (atom args) (list 'quote args)
          (if (eq 'unquote (head args))
            (head (tail args))
            (list
              'cons
              (backquote-helper (head args))
-             (backquote-helper (tail args))))))))
+             (backquote-helper (tail args)))))
+       args)))
 
 (def backquote
   (macro [exp] 
@@ -53,7 +51,9 @@
     `(.eval js/window 
             (str "new " ~(list 'quote object) "()")))
 
-(def id (% x . x))
+(defn id [x] x)
+
+(defn empty? [coll] (eq coll ()))
 
 (defn do [& statements]
   (last statements))
@@ -61,23 +61,21 @@
 ; LISTS CORE
 
 (defn reduce [f memo coll]
-  (if (empty? coll)
-    memo
+  (if coll
     (reduce f
             (f memo (head coll))
-            (tail coll))))
+            (tail coll))
+    memo))
 
 (defn reduce-right [f memo coll]
-  (if (empty? coll)
-    memo
-    (f (head coll) (reduce-right f memo (tail coll)))))
+  (if coll (f (head coll) (reduce-right f memo (tail coll))) memo))
 
 (defn map [f coll]
-  (if (empty? coll) 
-    ()
+  (if coll
     (cons
       (f (head coll))
-      (map f (tail coll)))))
+      (map f (tail coll)))
+    ()))
 
 ; LOGIC
 
@@ -167,12 +165,12 @@
   (second (split-at coll n)))
 
 (defn partition [n coll]
-  (if (empty? coll)
-    ()
+  (if coll
     ((% pair .
         (cons (head pair)
               (partition n (second pair))))
-        (split-at coll n))))
+        (split-at coll n))
+    ()))
 
 (defn second [coll] (nth coll 1))
 
