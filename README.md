@@ -14,8 +14,16 @@ Mineral.js is a yet another Lisp in the browser started as an exercise after rea
  - `fn`
  - `def`
  - `apply`
+
+Mineral specific primitives:
+
  - `externalcall` (to apply JS functions)
  - `infixcall` (to invoke JS infix operations)
+ - `hashmap` (creates a new hash map)
+ - `assoc` (adds a key-value pair to the map)
+ - `dissoc` (removes a key-value pair from the map)
+ - `get` (gets the element for the provided key)
+ - `keys` (returns all keys of the map)
 
 ## Syntactic Sugar
 

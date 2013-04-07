@@ -113,6 +113,13 @@
     93  (= '(a b c) '(a b c)) true
     94  ((defn f [n] (if (= 1 n) 1 (* n (f (- n 1))))) 5) 120
     95  (str "a" '(map f "lol") 'c) "\"a(map f \\\"lol\\\")c\""
+    96  (get (assoc (hashmap) 'ping 'pong) 'ping) pong
+    97  (get (assoc (hashmap) "ping" 'pong) 'ping) undefined
+    98  (get (assoc (hashmap) "ping" 'pong) "ping") pong
+    99  (get (assoc (hashmap) 'ping "pong") 'ping) "\"pong\""
+    100 (get (assoc (hashmap) "ping" "pong") "ping") "\"pong\""
+    101 (last (list (def m (hashmap)) (assoc m "a" "b") (assoc m "c" "d") (keys m))) ("a" "c")
+    101 (last (list (def m (hashmap)) (assoc m "a" "b") (assoc m "c" "d") (dissoc m "a") (keys m))) ("c")
 
     ))
 

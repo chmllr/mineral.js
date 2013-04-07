@@ -1,11 +1,9 @@
 "use strict";
 
+var DEBUG = false;
+
 function isList(x) {
     return x instanceof Array;
-}
-
-function isFunction(f) {
-    return typeof f == "function";
 }
 
 function isNumber(x) {
@@ -40,12 +38,6 @@ function isJSReference(x) {
     return isString(x) && x.indexOf("js/") == 0;
 } 
 
-function createEnvironment(oldEnv) {
-    var newEnv = {};
-    if(oldEnv) for(var key in oldEnv) newEnv[key] = oldEnv[key];
-    return newEnv;
-}
-
 var cache = { }, cacheBlackList = ["event"];
 
 function cachedEval(object) {
@@ -78,18 +70,18 @@ var mineral = {
     },
 
     "eq": function(a, b) {
-        return a == b 
-            || (isNIL(a) && isNIL(b)) 
-            || isAtom(a) && isAtom(b) && a.value == b.value;
+        return a == b || (isNIL(a) && isNIL(b)) || isAtom(a) && isAtom(b) && a.value == b.value;
     },
 
     "head":  function(list) {
-        if(!isList(list)) throw("Exception in 'head': " + list + " is not a list!");
+        if(!isList(list)) 
+            throw("Exception in 'head': " + list + " is not a list!");
         return list[0];
     },
 
     "tail": function(list) {
-        if(isNIL(list) || !isList(list)) throw "Exception in 'tail': can't work on " + list + "!";
+        if(isNIL(list) || !isList(list))
+            throw "Exception in 'tail': can't work on " + list + "!";
         return list.slice(1);
     },
 
@@ -110,7 +102,7 @@ var mineral = {
             bindings = bindings.slice(0,optionalArgsSep);
         }
         var lambda = function() {
-            var env = createEnvironment(this.env);
+            var env = mineral.hashmap(this.env);
             for (var i in bindings) env[bindings[i].value] = arguments[i];
             if(optionalArgsSep >= 0) {
                 var args = Array.prototype.slice.call(arguments);
@@ -122,11 +114,11 @@ var mineral = {
         return lambda;
     },
 
-    "def": function(name, value) {
-        var env = this.env;
-        mineral[name.value] = evaluate(value, env);
-        if(name.value.indexOf("-") >= 0) mineral[name.value.replace(/-/g, "_")] = mineral[name.value] 
-        return mineral[name.value];
+    "def": function(atom, value) {
+        var env = this.env, name = atom.value;
+        mineral[name] = evaluate(value, env);
+        if(name.indexOf("-") >= 0) mineral[name.replace(/-/g, "_")] = mineral[name] 
+        return mineral[name];
     },
 
     "apply": function(f, args, token){
@@ -137,7 +129,7 @@ var mineral = {
         var args = Array.prototype.slice.call(arguments);
         var object = cachedEval(args[0]), field = args[1], args = args.slice(2);
         var callee = object[field];
-        var result = isFunction(callee)
+        var result = typeof callee == "function"
                         ? callee.apply(object, args)
                         : (args.length > 0 ? object[field] = args[0] : callee);
         return result;
@@ -159,6 +151,30 @@ var mineral = {
         }
     },
 
+    "hashmap": function(map) {
+        var newMap = {};
+        for(var key in map) newMap[key] = map[key];
+        return newMap;
+    },
+
+    "get": function(map, key) {
+        return map[key];
+    },
+
+    "assoc": function(map, key, value) {
+        map[key] = value;
+        return map;
+    },
+
+    "dissoc": function(map, key) {
+        delete map[key];
+        return map;
+    },
+
+    "keys": function(map) {
+        return Object.keys(map);
+    },
+
     "true": true,
     "false": false
 }
@@ -175,7 +191,7 @@ function resolve(id, env) {
 }
 
 function evaluate(value, env) {
-    if(isNIL(value)) return [];
+    if(isNIL(value)) return []; // TODO: move this to resolve
     if (!isList(value)) return resolve(value, env);
     var func = value[0], token = func.value, args = value.slice(1), macro = false;
     if(token == "macro") {
@@ -199,6 +215,15 @@ function evaluate(value, env) {
     var result = mineral.apply(f, args, token);
     if(macro) result["macro"] = macro;
     return result;
+}
+
+function expand(code) {
+    if(isPrimitive(code)) return code;
+    for(var i in code) code[i] = expand(code[i]);
+    if(isPrimitive(code[0]) && code[0].value in mineral && mineral[code[0].value].macro) {
+        var result = evaluate(code)
+        return code[0].value == "backquote" ? evaluate(result) : result;
+    } else return code;
 }
 
 function tokenize(code, memo, pos) {
@@ -240,15 +265,6 @@ function tokenize(code, memo, pos) {
     return tokenize(code, memo, pos+1);
 }
 
-function expand(code) {
-    if(isPrimitive(code)) return code;
-    for(var i in code) code[i] = expand(code[i]);
-    if(isPrimitive(code[0]) && code[0].value in mineral && mineral[code[0].value].macro) {
-        var result = evaluate(code)
-        return code[0].value == "backquote" ? evaluate(result) : result;
-    } else return code;
-}
-
 function throwSyntaxError(pos, code) {
     throw("Syntax error at position " + pos + ": " + code);
 }
@@ -259,7 +275,7 @@ function parse(string) {
 
 function stringify(code) {
     if(isAtom(code)) return code.value;
-    if(isString(code)) return JSON.stringify(code);
+    if(isString(code) || !isList(code) && typeof code == "object") return JSON.stringify(code);
     if(!isList(code)) return code + '';
     var output = "";
     for(var i in code) output += stringify(code[i]) + " ";
@@ -299,7 +315,10 @@ function loadFiles() {
             content += httpRequest.responseText;
             if(args.length == fileNr) {
                 var exps = parse(normalize("(" + content + ")"));
-                for(var i in exps) evaluate(expand(exps[i]));
+                for(var i in exps) {
+                    if (DEBUG) console.log(stringify(exps[i]));
+                    evaluate(expand(exps[i]));
+                }
             } else loadFile();
         }
     };
