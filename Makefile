@@ -5,3 +5,4 @@ update:
 	git show master:mrl/mineral-console.mrl > mrl/mineral-console.mrl
 	git ca -m "updates"
 	git push
+	git co master
