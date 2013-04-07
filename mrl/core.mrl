@@ -149,15 +149,14 @@
 (defn range [n]
   (range-helper () n))
 
-(defn slice-into [acc coll n]
-  (if (or (= n 0) (empty? coll)) (list acc coll)
-    (slice-into (push (head coll) acc) (tail coll) (- n 1))))
+(defn split-at [coll n]
+  (list (.slice coll 0 n) (.slice coll n)))
 
 (defn take [n coll]
-  (head (slice-into () coll n)))
+  (head (split-at coll n)))
 
 (defn drop [n coll]
-  (second (slice-into () coll n)))
+  (second (split-at coll n)))
 
 (defn partition [n coll]
   (if (empty? coll)
@@ -165,25 +164,20 @@
     ((% pair .
         (cons (head pair)
               (partition n (second pair))))
-        (slice-into () coll n))))
+        (split-at coll n))))
 
-(defn second [coll] (head (tail coll)))
+(defn second [coll] (nth coll 1))
 
-(defn third [coll] (head (tail (tail coll))))
+(defn third [coll] (nth coll 2))
 
-(defn last [coll]
-  (let [elem (head coll)
-        rest (tail coll)]
-    (if (empty? rest) elem (last rest))))
+(defn count [coll] (.length coll))
 
 (defn nth [coll n]
-  (if (< n 1)
-    (if (not (empty? coll)) (head coll))
-    (nth (tail coll) (- n 1))))
+  (if (<= 0 n)
+    (get coll n)
+    (get coll (+ (count coll) n))))
 
-; TODO: tail recursion!
-(defn count [coll]
-  (if (empty? coll) 0 (+ 1 (count (tail coll)))))
+(defn last [coll] (nth coll -1))
 
 ; ALIASES
 

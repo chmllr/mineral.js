@@ -102,8 +102,8 @@
     82  (reduce (% m e . (+ m e)) 0 '(1 2 3 4 5 6 7 8 9 10)) 55
     83  (reduce-right (% m e . (* m e)) 1 '(1 2 3 4 5)) 120
     84  (substr "hello world" 0 7) "\"hello w\""
-    85  (slice-into () '(1 2 3 4) 3) ((1 2 3) (4))
-    86  (slice-into () '(1 2 3 4) 8) ((1 2 3 4) ())
+    85  (split-at '(1 2 3 4) 3) ((1 2 3) (4))
+    86  (split-at '(1 2 3 4) 8) ((1 2 3 4) ())
     87  (partition 2 '(1 2 3 4 5)) ((1 2) (3 4) (5))
     88  (push 'f '(4 5 f s)) (4 5 f s f)
     89  (range 10) (0 1 2 3 4 5 6 7 8 9 10)
@@ -121,7 +121,8 @@
     101 (last (list (def m (hashmap)) (assoc m "a" "b") (assoc m "c" "d") (keys m))) ("a" "c")
     102 (last (list (def m (hashmap)) (assoc m "a" "b") (assoc m "c" "d") (dissoc m "a") (keys m))) ("c")
     103 (get (assoc (assoc (hashmap) 'lol 'haha) 'ping 'pong) 'lol) haha
-    104  (get (assoc (hashmap) "ping" 'pong) 'pung) undefined
+    104 (get (assoc (hashmap) "ping" 'pong) 'pung) undefined
+    105 (nth (range 10) -1) 10 
 
     ))
 
