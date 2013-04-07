@@ -1,10 +1,13 @@
 (defmacro assert-equal [n input output]
   `(let [actual-output (js/interpret ~input)]
-     (if (= ~output actual-output)
-       (console-log (str "Test " ~n " successful: '" 
-                         ~input "' -> '" ~output "'"))
-       (console-error (str "Test " ~n " failed: '" ~input "' yields '" 
-                           actual-output "' instead of '" ~output "'")))))
+       (if (= ~output actual-output)
+        (do 
+            (console-log (str "Test " ~n " successful: '"~input "' -> '" ~output "'"))
+            true)
+        (do
+            (console-error (str "Test " ~n " failed: '" ~input "' yields '" 
+                actual-output "' instead of '" ~output "'"))
+            false))))
 
 (def tests
   '(
@@ -66,7 +69,6 @@
     48  (apply (% x y . x) '(T F)) T
     49  (apply (% x y . y) '(T F)) F
     50  ((% l . (id (head l))) '('A)) (quote A)
-    50  (let (x 'A) x) A
     51  (let (x 'A y ()) (cons x y)) (A)
     52  (last '(a b c d e f g)) g
     53  (map str '(% a #_ (gar bage) . (list a v))) "(\"fn\" \"(a)\" \"(list a v)\")"
@@ -96,7 +98,6 @@
     77  (and true (= 'a 'a) (= 'a 'b)) false
     78  (or false (= 'c 'a) (not (= 'a 'a))) false
     79  (or false (= 'c 'a) (= 'a 'a)) true
-    79  (if () 'A 'B) B
     80  (empty? ()) true
     81  (empty? '(a)) false
     82  (reduce (% m e . (+ m e)) 0 '(1 2 3 4 5 6 7 8 9 10)) 55
@@ -123,7 +124,6 @@
     103 (get (assoc (assoc (hashmap) 'lol 'haha) 'ping 'pong) 'lol) haha
     104 (get (assoc (hashmap) "ping" 'pong) 'pung) undefined
     105 (nth (range 10) -1) 10
-    106 (concat (range 4) '(a b c)) (0 1 2 3 4 a b c)
     106 (index-of (concat (range 4) '(a b c)) 4) 4
     107 (filter (% e . (= 0 (% e 2))) (range 6)) (0 2 4 6)
     108 (filter (% . true) (range 3)) (0 1 2 3)
@@ -133,24 +133,31 @@
     112 (str (hashmap 'a 'b 'c 'd 'e 'f)) "\"{\\\"a\\\": b, \\\"c\\\": d, \\\"e\\\": f}\""
     113 (get (hashmap 'a 'b, 'c 'd, 'e 'f) 'c) d
     114 (= '(1 2 3) '[1, 2, 3]) true
+    115  (let (x 'A) x) A
+    116  (if () 'A 'B) B
+    117 (concat (range 4) '(a b c)) (0 1 2 3 4 a b c)
 
     ))
 
 (defn process-tests [tests]
-  (if (empty? tests) ()
-    (do (assert-equal (head tests) (second tests) (third tests))
-      (process-tests (tail (tail (tail tests)))))))
+  (if tests
+    (cons
+        (assert-equal (head tests) (second tests) (third tests))
+        (process-tests (drop 3 tests))) ()))
 
 (defmacro timer [exp]
   `(let [get-time (% . (.getTime (new Date)))
          start (get-time)
          result ~exp
          time (- (get-time) start)]
-     (str time "ms")))
+     {'RESULT result 'TIME (str time "ms")}))
 
 (defn run-tests []
-  (let [time (timer (process-tests (map str tests)))
-        result (str "All tests executed in " time ".")]
+  (let [timer-response (timer (process-tests (map str tests)))
+        time (get timer-response 'TIME)
+        result (get timer-response 'RESULT)
+        succeeded (count (filter id result))
+        failed (- (count result) succeeded)]
     (do
       (console-log result)
-      result)))
+      (str "Tests succeeded: " succeeded ", failed: " failed ". Time: " time))))
