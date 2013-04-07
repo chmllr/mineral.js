@@ -30,6 +30,8 @@ Mineral specific primitives:
  - lambda function: `(% arg1 arg2 ... argN . s-expression)`
  - commenting out a s-exp by prepending with `#_`: `#_ (map f list)`
  - list `['a 'b 'c]` is the same as `('a 'b 'c)`
+ - comma is white space, i.e., this `'[1, 2, 3, 4]` is equivalent to this `'(1 2 3 4)`
+ - maps are representad as `{'key1 "value1" 'key2 "value2"}` or `{"a" "b", "c" "d", "e" "f"}`
 
 ## Differences with Lisp From the Paper
 

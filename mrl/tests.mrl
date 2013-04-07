@@ -118,8 +118,8 @@
     98  (get (assoc (hashmap) "ping" 'pong) "ping") pong
     99  (get (assoc (hashmap) 'ping "pong") 'ping) "\"pong\""
     100 (get (assoc (hashmap) "ping" "pong") "ping") "\"pong\""
-    101 (last (list (def m (hashmap)) (assoc m "a" "b") (assoc m "c" "d") (keys m))) ("a" "c")
-    102 (last (list (def m (hashmap)) (assoc m "a" "b") (assoc m "c" "d") (dissoc m "a") (keys m))) ("c")
+    101 (keys (assoc (assoc (hashmap) "c" "d") "a" "b")) ("c" "a")
+    102 (keys (dissoc (assoc (assoc {} "c" "d") "a" "b") "c")) ("a")
     103 (get (assoc (assoc (hashmap) 'lol 'haha) 'ping 'pong) 'lol) haha
     104 (get (assoc (hashmap) "ping" 'pong) 'pung) undefined
     105 (nth (range 10) -1) 10
@@ -130,7 +130,10 @@
     109 (reverse '(A B C D)) (D C B A)
     110 (sort '(4 5 1 3 2)) (1 2 3 4 5)
     111 (pop '(A B C D)') (A B C)
-    
+    112 (str (hashmap 'a 'b 'c 'd 'e 'f)) "\"{\\\"a\\\": b, \\\"c\\\": d, \\\"e\\\": f}\""
+    113 (get (hashmap 'a 'b, 'c 'd, 'e 'f) 'c) d
+    114 (= '(1 2 3) '[1, 2, 3]) true
+
     ))
 
 (defn process-tests [tests]
