@@ -129,16 +129,24 @@
 (map (% x . (js/interpret
               (js/stringify 
                 `(defn ~x (a b) (infixcall '~x a b)))))
-     '(+ - * / < > >= <= ^ & |))
+     '(+ - * / < > >= <= ^ & | %))
 
 ; LISTS BONUS
 
-(defn reverse [coll]
-  (reduce (% memo elem . (cons elem memo)) () coll))
+(defn reverse [coll] (.reverse coll))
+
+(defn sort [coll] (.sort coll))
+
+(defn concat [a b] (.concat a b))
 
 (defn push [elem coll]
   ((% coll .
       ((% x . coll) (.push coll elem)))
+      (.slice coll 0)))
+
+(defn pop [coll]
+  ((% coll .
+      ((% x . coll) (.pop coll)))
       (.slice coll 0)))
 
 (defn range-helper [acc n]
@@ -176,6 +184,17 @@
   (if (<= 0 n)
     (get coll n)
     (get coll (+ (count coll) n))))
+
+(defn filter [p? coll]
+  (if coll
+    (let [e (head coll)
+          r (filter p? (tail coll))]
+      (if (p? e) (cons e r) r))
+    ()))
+
+(defn index-of [coll elem]
+  ; TODO: for non-primitive type use filter with '='
+  (.indexOf coll elem))
 
 (defn last [coll] (nth coll -1))
 

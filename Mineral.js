@@ -145,6 +145,7 @@ var mineral = {
             case '>': return a > b;
             case '>=': return a >= b;
             case '<=': return a <= b;
+            case '%': return a % b;
             case '^': return a ^ b;
             case '&': return a & b;
             case '|': return a | b;
