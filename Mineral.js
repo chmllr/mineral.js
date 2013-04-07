@@ -158,15 +158,18 @@ var mineral = {
     },
 
     "get": function(map, key) {
+        key = isString(key) ? key : stringify(key);
         return map[key];
     },
 
     "assoc": function(map, key, value) {
+        key = isString(key) ? key : stringify(key);
         map[key] = value;
         return map;
     },
 
     "dissoc": function(map, key) {
+        key = isString(key) ? key : stringify(key);
         delete map[key];
         return map;
     },
@@ -275,8 +278,14 @@ function parse(string) {
 
 function stringify(code) {
     if(isAtom(code)) return code.value;
-    if(isString(code) || !isList(code) && typeof code == "object") return JSON.stringify(code);
-    if(!isList(code)) return code + '';
+    if(isString(code)) return JSON.stringify(code);
+    if(!isList(code))
+        if(typeof code == "object") {
+            var output = "";        
+            for(var key in code) output += stringify(key) + ": " + stringify(code[key]) + ", ";
+            return "{" + output.substring(0, output.length-2) + "}";
+        }
+        else return code + '';
     var output = "";
     for(var i in code) output += stringify(code[i]) + " ";
     return "(" + output.substring(0, output.length-1) + ")";
