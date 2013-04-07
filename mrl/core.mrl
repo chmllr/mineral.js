@@ -83,13 +83,13 @@
 
 (defmacro or [& vals]
   `(reduce (% m e . 
-              (if m true e)) 
+              (if m true e))
            false
            ~(cons 'list vals)))
 
 (defmacro and [& vals]
-  `(reduce (% m e . 
-              (if e m false)) 
+  `(reduce (% m e .
+              (if e m false))
            true
            ~(cons 'list vals)))
 
@@ -128,7 +128,8 @@
 
 (map (% x . (js/interpret
               (js/stringify 
-                `(defn ~x (a b) (infixcall '~x a b))))) '(+ - * / < > >= <= ^ & |))
+                `(defn ~x (a b) (infixcall '~x a b)))))
+     '(+ - * / < > >= <= ^ & |))
 
 ; LISTS BONUS
 
@@ -140,10 +141,13 @@
       ((% x . coll) (.push coll elem)))
       (.slice coll 0)))
 
-; TODO: tail recursion!
+(defn range-helper [acc n]
+  (do (.unshift acc n)
+    (if (eq n 0) acc
+      (range-helper acc (- n 1)))))
+
 (defn range [n]
-  (if (= n 0) '(0)
-    (push n (range (- n 1)))))
+  (range-helper () n))
 
 (defn slice-into [acc coll n]
   (if (or (= n 0) (empty? coll)) (list acc coll)

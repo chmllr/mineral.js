@@ -195,7 +195,8 @@ function resolve(id, env) {
 }
 
 function evaluate(value, env) {
-    if (isPrimitive(value)) return resolve(value, env);
+    if(isNIL(value)) return [];
+    if(isPrimitive(value)) return resolve(value, env);
     var func = value[0], token = func.value, args = value.slice(1), macro = false;
     if(token == "macro") {
         macro = true;
@@ -295,7 +296,7 @@ function normalize(string) {
     var patterns = [
         { "pattern": /;.*($|\n|\r)/g, "substitution": "" }, // comments
         { "pattern": /[\s\t\n\r]+/g, "substitution": " " }, // whitespace normalization
-        { "pattern": /%([a-zA-Z\-\s]*?)?\./g, "substitution": "fn ($1)" } // lambda sugar
+        { "pattern": /%([a-zA-Z\-\s]*?)?\./g, "substitution": "fn ($1)" } // lambda
     ];
     for(var i in patterns)
         string = string.replace(patterns[i].pattern, patterns[i].substitution);
