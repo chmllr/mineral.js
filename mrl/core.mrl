@@ -158,11 +158,9 @@
 (defn split-at [coll n]
   (list (.slice coll 0 n) (.slice coll n)))
 
-(defn take [n coll]
-  (head (split-at coll n)))
+(defn take [n coll] (.slice coll 0 n))
 
-(defn drop [n coll]
-  (second (split-at coll n)))
+(defn drop [n coll] (.slice coll n))
 
 (defn partition [n coll]
   (if coll
