@@ -184,6 +184,7 @@ var mineral = {
 
 function resolve(id, env) {
     if(id == undefined 
+        || isNIL(id)
         || isNumber(id)
         || isBoolean(id)
         || isString(id)
@@ -194,8 +195,7 @@ function resolve(id, env) {
 }
 
 function evaluate(value, env) {
-    if(isNIL(value)) return []; // TODO: move this to resolve
-    if (!isList(value)) return resolve(value, env);
+    if (isPrimitive(value)) return resolve(value, env);
     var func = value[0], token = func.value, args = value.slice(1), macro = false;
     if(token == "macro") {
         macro = true;
