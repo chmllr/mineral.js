@@ -50,14 +50,21 @@ function cachedEval(object) {
     return result;
 }
 
+function cloneObject(oldObject) {
+    var newObject = {};
+    for(var key in oldObject) newObject[key] = oldObject[key];
+    return newObject;
+}
+
 var atoms = { "quote" : new Atom("quote"), 
             "backquote": new Atom("backquote"),
             "unquote": new Atom("unquote"),
-            "jswindow": new Atom("js/window") };
+            "jswindow": new Atom("js/window"),
+            "hashmap": new Atom("hashmap") };
 
 var sugarMap = { "'" : atoms.quote, "`": atoms.backquote, "~": atoms.unquote };
 
-var enclosureMap = { '(' : ')', '"' : '"', "[": "]" };
+var enclosureMap = { '(' : ')', '"' : '"', "[": "]", "{": "}" };
 
 var mineral = {
 
@@ -102,7 +109,7 @@ var mineral = {
             bindings = bindings.slice(0,optionalArgsSep);
         }
         var lambda = function() {
-            var env = mineral.hashmap(this.env);
+            var env = cloneObject(this.env);
             for (var i in bindings) env[bindings[i].value] = arguments[i];
             if(optionalArgsSep >= 0) {
                 var args = Array.prototype.slice.call(arguments);
@@ -145,15 +152,18 @@ var mineral = {
             case '>': return a > b;
             case '>=': return a >= b;
             case '<=': return a <= b;
+            case '%': return a % b;
             case '^': return a ^ b;
             case '&': return a & b;
             case '|': return a | b;
         }
     },
 
-    "hashmap": function(map) {
+    "hashmap": function() {
         var newMap = {};
-        for(var key in map) newMap[key] = map[key];
+        if(arguments)
+            for(var i = 0; i < arguments.length; i++)
+                newMap = mineral.assoc(newMap, arguments[i], arguments[++i]);
         return newMap;
     },
 
@@ -164,12 +174,14 @@ var mineral = {
 
     "assoc": function(map, key, value) {
         key = isString(key) ? key : stringify(key);
+        map = cloneObject(map);
         map[key] = value;
         return map;
     },
 
     "dissoc": function(map, key) {
         key = isString(key) ? key : stringify(key);
+        map = cloneObject(map);
         delete map[key];
         return map;
     },
@@ -184,6 +196,7 @@ var mineral = {
 
 function resolve(id, env) {
     if(id == undefined 
+        || isNIL(id)
         || isNumber(id)
         || isBoolean(id)
         || isString(id)
@@ -194,8 +207,8 @@ function resolve(id, env) {
 }
 
 function evaluate(value, env) {
-    if(isNIL(value)) return []; // TODO: move this to resolve
-    if (!isList(value)) return resolve(value, env);
+    if(isNIL(value)) return [];
+    if(isPrimitive(value)) return resolve(value, env);
     var func = value[0], token = func.value, args = value.slice(1), macro = false;
     if(token == "macro") {
         macro = true;
@@ -229,16 +242,20 @@ function expand(code) {
     } else return code;
 }
 
+function isWhitespace(char) {
+    return [" ", ","].indexOf(char) >= 0;
+}
+
 function tokenize(code, memo, pos) {
     if(code.length <= pos) return memo;
     var current = code.charAt(pos), result = "", sugared = false, ops = [];
-    if (current == " ") return tokenize(code, memo, pos+1);
+    if (isWhitespace(current)) return tokenize(code, memo, pos+1);
     while(Object.keys(sugarMap).indexOf(current) >= 0) {
         ops.unshift(sugarMap[current]);
         current = code.charAt(++pos);
         sugared = true;
     }
-    if(current == ")") throwSyntaxError(pos, code);
+    if([")", "]", "}"].indexOf(current) >= 0) throwSyntaxError(pos, code);
     if(Object.keys(enclosureMap).indexOf(current) >= 0) {
         var enclosures = 1, oldPos = pos, opener = current, closer = enclosureMap[current];
         while(enclosures > 0) {
@@ -255,8 +272,10 @@ function tokenize(code, memo, pos) {
         result = opener != '"'
             ? tokenize(code.substring(oldPos+1, pos), [], 0)
             : eval('"' + code.substring(oldPos+1, pos) + '"');
+        if(opener == "{")
+            result = [atoms.hashmap].concat(result);
     } else {
-        while(pos < code.length && code.charAt(pos) != " ") result += code.charAt(pos++);
+        while(pos < code.length && !isWhitespace(code.charAt(pos))) result += code.charAt(pos++);
         if(!isNaN(result)) result = result | 0;
         if(result == "true" || result == "false") result = result == "true";
         if(isString(result) && result != "&" && result != "#_") result = new Atom(result);
@@ -295,7 +314,7 @@ function normalize(string) {
     var patterns = [
         { "pattern": /;.*($|\n|\r)/g, "substitution": "" }, // comments
         { "pattern": /[\s\t\n\r]+/g, "substitution": " " }, // whitespace normalization
-        { "pattern": /%([a-zA-Z\-\s]*?)?\./g, "substitution": "fn ($1)" } // lambda sugar
+        { "pattern": /%([a-zA-Z\-\s]*?)?\./g, "substitution": "fn ($1)" } // lambda
     ];
     for(var i in patterns)
         string = string.replace(patterns[i].pattern, patterns[i].substitution);
