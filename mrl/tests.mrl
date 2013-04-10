@@ -133,8 +133,8 @@
     112 (str (hashmap 'a 'b 'c 'd 'e 'f)) "\"{\\\"a\\\": b, \\\"c\\\": d, \\\"e\\\": f}\""
     113 (get (hashmap 'a 'b, 'c 'd, 'e 'f) 'c) d
     114 (= '(1 2 3) '[1, 2, 3]) true
-    115  (let (x 'A) x) A
-    116  (if () 'A 'B) B
+    115 (let (x 'A) x) A
+    116 (if () 'A 'B) B
     117 (concat (range 4) '(a b c)) (0 1 2 3 4 a b c)
 
     ))
@@ -145,19 +145,13 @@
         (assert-equal (head tests) (second tests) (third tests))
         (process-tests (drop 3 tests))) ()))
 
-(defmacro timer [exp]
-  `(let [get-time (% . (.getTime (new Date)))
-         start (get-time)
-         result ~exp
-         time (- (get-time) start)]
-     {'RESULT result 'TIME (str time "ms")}))
-
 (defn run-tests []
   (let [timer-response (timer (process-tests (map str tests)))
         time (get timer-response 'TIME)
         result (get timer-response 'RESULT)
         succeeded (count (filter id result))
-        failed (- (count result) succeeded)]
+        failed (- (count result) succeeded)
+        output (str "Tests succeeded: " succeeded ", failed: " failed ". Time: " time)]
     (do
-      (console-log result)
-      (str "Tests succeeded: " succeeded ", failed: " failed ". Time: " time))))
+      (console-log output)
+      output)))

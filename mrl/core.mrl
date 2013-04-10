@@ -45,19 +45,6 @@
     exp
     (partition 2 args)))
 
-; VARIOUS
-
-(defmacro new [object & args]
-    `(.eval js/window 
-            (str "new " ~(list 'quote object) "()")))
-
-(defn id [x] x)
-
-(defn empty? [coll] (eq coll ()))
-
-(defn do [& statements]
-  (last statements))
-
 ; LISTS CORE
 
 (defn reduce [f memo coll]
@@ -193,6 +180,26 @@
   (.indexOf coll elem))
 
 (defn last [coll] (nth coll -1))
+
+; VARIOUS
+
+(defmacro new [object & args]
+    `(.eval js/window 
+            (str "new " ~(list 'quote object) "()")))
+
+(defn id [x] x)
+
+(defn empty? [coll] (eq coll ()))
+
+(defn do [& statements]
+  (last statements))
+
+(defmacro timer [exp]
+  `(let [get-time (% . (.getTime (new Date)))
+         start (get-time)
+         result ~exp
+         time (- (get-time) start)]
+     {'RESULT result 'TIME (str time "ms")}))
 
 ; ALIASES
 
