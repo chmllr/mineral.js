@@ -31,8 +31,10 @@
 (def defn
   (macro 
     [name args body]
-    `(def ~name
-       (fn ~args ~body))))
+    `((% y x . x)
+      (def ~name (fn ~args ~body))
+      (assoc ~name 'META {'doc ""
+                          'source (list 'defn '~name '~args '~body)}))))
 
 (defmacro let [args exp]
   (reduce-right
@@ -201,6 +203,11 @@
          time (- (get-time) start)]
      {'RESULT result 'TIME (str time "ms")}))
 
+(defn meta [o] (get o 'META))
+
+(defn source [f] (get (meta f) 'source))
+
+(defn doc [f] (get (meta f) 'doc))
 
 ; MAPS
 
