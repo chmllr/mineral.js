@@ -1,16 +1,4 @@
-(defmacro assert-equal [n input output]
-  `(let [actual-output (js/interpret ~input)]
-       (if (= ~output actual-output)
-        (do 
-            (console-log (str "Test " ~n " successful: '"~input "' -> '" ~output "'"))
-            true)
-        (do
-            (console-error (str "Test " ~n " failed: '" ~input "' yields '" 
-                actual-output "' instead of '" ~output "'"))
-            false))))
-
-(def tests
-  '(
+(def tests '(
     1   'a a
     2   '(a b c) (a b c)
     3   (atom 'a) true
@@ -151,8 +139,21 @@
     125 (get (last (list (def m {'a 't}) (dissoc m 'a) m)) 'a) undefined
     126 (get (last (list (def m {'a 't}) (remove m 'a) m)) 'a) t
     127 (str (source do)) "\"(defn do (\\\"&\\\" statements) (last statements))\""
+    128 ((fn (([x] (cons x ())) ([a b] (+ a b)))) 6) (6)
+    129 ((fn (([x] (cons x ())) ([a b] (+ a b)))) 6 5) 11
 
-    ))
+))
+
+(defmacro assert-equal [n input output]
+  `(let [actual-output (js/interpret ~input)]
+       (if (= ~output actual-output)
+        (do 
+            (console-log (str "Test " ~n " successful: '"~input "' -> '" ~output "'"))
+            true)
+        (do
+            (console-error (str "Test " ~n " failed: '" ~input "' yields '" 
+                actual-output "' instead of '" ~output "'"))
+            false))))
 
 (defn process-tests [tests]
   (if tests

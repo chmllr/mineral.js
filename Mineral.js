@@ -60,11 +60,9 @@ function newEnv(oldObject) {
     return newObject;
 }
 
-var atoms = { "quote" : new Atom("quote"), 
-            "backquote": new Atom("backquote"),
-            "unquote": new Atom("unquote"),
-            "jswindow": new Atom("js/window"),
-            "hashmap": new Atom("hashmap") };
+var atoms = { "quote" : new Atom("quote"), "backquote": new Atom("backquote"),
+            "unquote": new Atom("unquote"), "jswindow": new Atom("js/window"),
+            "hashmap": new Atom("hashmap"), "fn": new Atom("fn") };
 
 var sugarMap = { "'" : atoms.quote, "`": atoms.backquote, "~": atoms.unquote };
 
@@ -106,20 +104,31 @@ var mineral = {
         return evaluate(!isNIL(value) && value ? thenAction : elseAction, env);
     },
 
-    "fn": function(bindings, exp) {
-        var optionalArgsSep = bindings.indexOf("&"), optionalBinding;
-        if(optionalArgsSep >= 0 && bindings.length > optionalArgsSep+1) {
-            optionalBinding = bindings[optionalArgsSep+1];
-            bindings = bindings.slice(0,optionalArgsSep);
+    "fn": function(arglists_exps) {
+        var variants = {}, bindings, optionalArgsSep, optionalBinding;
+        for(var i in arglists_exps) {
+            bindings = arglists_exps[i][0];
+            optionalArgsSep = bindings.indexOf("&");
+            if(optionalArgsSep >= 0 && bindings.length > optionalArgsSep+1) {
+                optionalBinding = bindings[optionalArgsSep+1];
+                bindings = bindings.slice(0,optionalArgsSep);
+            }
+            // TODO: deal with overriding
+            variants[optionalBinding ? "any" : bindings.length] = 
+                { "bindings": bindings,
+                  "optionalBinding": optionalBinding,
+                  "exp": arglists_exps[i][1]};
         }
         var lambda = function() {
-            var env = newEnv(this.env);
+            var env = newEnv(this.env), n = arguments.length,
+                variant = variants[n in variants ? n : "any"];
+            bindings = variant.bindings;
             for (var i in bindings) env[bindings[i].value] = arguments[i];
-            if(optionalArgsSep >= 0) {
+            if(variant.optionalBinding) {
                 var args = Array.prototype.slice.call(arguments);
-                env[optionalBinding.value] = args.slice(bindings.length);
+                env[variant.optionalBinding.value] = args.slice(bindings.length);
             }
-            return evaluate(exp, env);
+            return evaluate(variant.exp, env);
         };
         lambda["lambda"] = true;
         return lambda;
@@ -211,6 +220,7 @@ function evaluate(value, env) {
     if(token == "macro") {
         macro = true;
         token = "fn"
+        args = [[args]];
         func = new Atom(token);
     }
     var localMethodCall = isString(token) && token.charAt(0) == ".";
@@ -278,7 +288,14 @@ function parse(string) {
         if(sugared)
             for(var i in ops)
                 result = [ops[i], result];
-        if(memo[memo.length-1] == "#_") memo.pop(); else memo.push(result); 
+        if(memo[memo.length-1] == "#_") memo.pop();
+        else {
+            if(isList(result) && !isNIL(result) && 
+                result[0].value == atoms.fn.value && 
+                result.length > 2)
+                result = [result[0], [[result[1], result[2]]]];
+            memo.push(result);
+        }
         return tokenize(code, memo, pos+1);
     }
 
