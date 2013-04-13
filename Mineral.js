@@ -104,8 +104,11 @@ var mineral = {
         return evaluate(!isNIL(value) && value ? thenAction : elseAction, env);
     },
 
-    "fn": function(arglists_exps) {
+    "fn": function() {
         var variants = {}, bindings, optionalArgsSep, optionalBinding;
+        var arglists_exps = arguments.length == 1
+            ? arguments[0]
+            : [[arguments[0], arguments[1]]];
         for(var i in arglists_exps) {
             bindings = arglists_exps[i][0];
             optionalArgsSep = bindings.indexOf("&");
@@ -122,6 +125,8 @@ var mineral = {
         var lambda = function() {
             var env = newEnv(this.env), n = arguments.length,
                 variant = variants[n in variants ? n : "any"];
+            if(!variant) 
+                throw "Wrong number of arguments: " + n + " instead of " + Object.keys(variants);
             bindings = variant.bindings;
             for (var i in bindings) env[bindings[i].value] = arguments[i];
             if(variant.optionalBinding) {
@@ -220,7 +225,6 @@ function evaluate(value, env) {
     if(token == "macro") {
         macro = true;
         token = "fn"
-        args = [[args]];
         func = new Atom(token);
     }
     var localMethodCall = isString(token) && token.charAt(0) == ".";
@@ -288,14 +292,7 @@ function parse(string) {
         if(sugared)
             for(var i in ops)
                 result = [ops[i], result];
-        if(memo[memo.length-1] == "#_") memo.pop();
-        else {
-            if(isList(result) && !isNIL(result) && 
-                result[0].value == atoms.fn.value && 
-                result.length > 2)
-                result = [result[0], [[result[1], result[2]]]];
-            memo.push(result);
-        }
+        if(memo[memo.length-1] == "#_") memo.pop(); else memo.push(result);
         return tokenize(code, memo, pos+1);
     }
 

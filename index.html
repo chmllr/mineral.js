@@ -1,6 +1,20 @@
 <html>
     <head>
       <script type="text/javascript" src="Mineral.js"></script>
+      <script type="text/javascript">
+        function js_tests() {
+            var tests = evaluate(expand(parse(normalize("tests"))));
+            for(var i = 0; i < tests.length; i++) {
+                var number = tests[i], code = stringify(tests[++i]), expected = stringify(tests[++i]);
+                var response = interpret(code);
+                if(expected.charAt(0) == '"' && code.charAt(0) != '"') response = stringify(response);
+                if(response == expected)
+                    console.log(number + ": '" + code + "'' -> '" + response + "'");
+                else
+                    console.error(number + ": '" + code + "'' yields '" + response + "'' instead of '" + expected + "'");
+            }
+        }
+      </script>
     </head>
     <body onload="loadFiles('mrl/core.mrl', 'mrl/mineral-console.mrl', 'mrl/tests.mrl')">
         <textarea rows=15 cols=100 id="mineralConsole"

@@ -53,7 +53,7 @@
     44  (= "test" "test") true
     45  (apply (% x y z . (cons x (cons y z))) '(a b ())) (a b)
     46  (apply str '(true false "test")) "\"truefalsetest\""
-    47  ((% x . ((% y . x))) 'Z) Z
+    47  ((% x . ((% . x))) 'Z) Z
     48  (apply (% x y . x) '(T F)) T
     49  (apply (% x y . y) '(T F)) F
     50  ((% l . (id (head l))) '('A)) (quote A)
@@ -62,7 +62,7 @@
     53  (map str '(% a #_ (gar bage) . (list a v))) "(\"fn\" \"(a)\" \"(list a v)\")"
     54  (js/stringify '(% a . (list a v))) "\"(fn (a) (list a v))\""
     55  ((% a-b c-d . (cons a-b c-d)) 'x-y ()) (x-y)
-    56  ((% x . x) (def binde-strich 'TEST) binde-strich) TEST
+    56  ((% y x . x) (def binde-strich 'TEST) binde-strich) TEST
     57  (infixcall '+ 3 4) 7
     58  (infixcall '^ 1 2) 3
     59  (^ 1 2) 3
@@ -70,7 +70,7 @@
     61  (- 111 222) -111
     62  (* 111 222) 24642
     63  (| 8 1) 9
-    64  (^ (^ (^ 23) 66) 23) 66
+    64  (^ (^ 23 66) 23) 66
     65  (list #_ any #_ (garbage) #_ 'will 'be 'ignored) (be ignored)
     66  (take 4 '(a b c d e f g)) (a b c d)
     67  (take 4 '(a b)) (a b)
@@ -114,10 +114,10 @@
     105 (nth (range 10) -1) 10
     106 (index-of (concat (range 4) '(a b c)) 4) 4
     107 (filter (% e . (= 0 (% e 2))) (range 6)) (0 2 4 6)
-    108 (filter (% . true) (range 3)) (0 1 2 3)
+    108 (filter (% x . true) (range 3)) (0 1 2 3)
     109 (reverse '(A B C D)) (D C B A)
     110 (sort '(4 5 1 3 2)) (1 2 3 4 5)
-    111 (pop '(A B C D)') (A B C)
+    111 (pop '(A B C D)) (A B C)
     112 (str (hashmap 'a 'b 'c 'd 'e 'f)) "\"{\\\"a\\\" b, \\\"c\\\" d, \\\"e\\\" f}\""
     113 (get (hashmap 'a 'b, 'c 'd, 'e 'f) 'c) d
     114 (= '(1 2 3) '[1, 2, 3]) true
