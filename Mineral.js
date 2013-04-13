@@ -167,7 +167,7 @@ var mineral = {
         var newMap = {};
         if(arguments)
             for(var i = 0; i < arguments.length; i++)
-                newMap = mineral.assoc(newMap, arguments[i], arguments[++i]);
+                mineral.assoc(newMap, arguments[i], arguments[++i]);
         return newMap;
     },
 
@@ -188,21 +188,17 @@ var mineral = {
         return map;
     },
 
-    "keys": function(map) {
-        return Object.keys(map);
-    },
-
     "true": true,
     "false": false
 }
 
 function resolve(id, env) {
     if(id == undefined 
-        || isNIL(id)
         || isNumber(id)
         || isBoolean(id)
         || isString(id)
-        || isJSReference(id.value)) return id;
+        || isJSReference(id.value)
+        || isNIL(id)) return id;
     if(env && id.value in env) return env[id.value];
     if(id.value in mineral) return mineral[id.value];
     throw("The identifier '" + id.value + "' can't be resolved.");

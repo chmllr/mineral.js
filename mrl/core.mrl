@@ -211,11 +211,13 @@
 
 ; MAPS
 
+(defn keys [o] (.keys js/Object o))
+
 (defn clone-object [o]
   (if (js/isList o)
     (map clone-object o)
     (if (js/isObject o)
-      (reduce (% m k . (assoc m k (clone-object (get o k)))) {} (.keys js/Object o))
+      (reduce (% m k . (assoc m k (clone-object (get o k)))) {} (keys o))
       o)))
 
 (defn set [m k v]
