@@ -106,8 +106,8 @@ var mineral = {
 
     "fn": function() {
         var variants = {}, bindings, optionalArgsSep, optionalBinding;
-        var arglists_exps = arguments.length == 1
-            ? arguments[0]
+        var arglists_exps = arguments.length > 2 || isList(arguments[0][0])
+            ? arguments
             : [[arguments[0], arguments[1]]];
         for(var i in arglists_exps) {
             bindings = arglists_exps[i][0];
