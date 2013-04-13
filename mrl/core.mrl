@@ -31,8 +31,10 @@
 (def defn
   (macro 
     [name args body]
-    `(def ~name
-       (fn ~args ~body))))
+    `((% y x . x)
+      (def ~name (fn ~args ~body))
+      (assoc ~name 'META {'doc ""
+                          'source (list 'defn '~name '~args '~body)}))))
 
 (defmacro let [args exp]
   (reduce-right
@@ -44,19 +46,6 @@
          (second pair)))
     exp
     (partition 2 args)))
-
-; VARIOUS
-
-(defmacro new [object & args]
-    `(.eval js/window 
-            (str "new " ~(list 'quote object) "()")))
-
-(defn id [x] x)
-
-(defn empty? [coll] (eq coll ()))
-
-(defn do [& statements]
-  (last statements))
 
 ; LISTS CORE
 
@@ -122,7 +111,7 @@
 (defn substr [string start end]
   (.slice string start end))
 
-; ARITHMETIC
+; ARITHMETIC & BIT OPERATIONS
 
 (map (% x . (js/interpret
               (js/stringify 
@@ -193,6 +182,49 @@
   (.indexOf coll elem))
 
 (defn last [coll] (nth coll -1))
+
+; VARIOUS
+
+(defmacro new [object & args]
+    `(.eval js/window 
+            (str "new " ~(list 'quote object) "()")))
+
+(defn id [x] x)
+
+(defn empty? [coll] (eq coll ()))
+
+(defn do [& statements]
+  (last statements))
+
+(defmacro timer [exp]
+  `(let [get-time (% . (.getTime (new Date)))
+         start (get-time)
+         result ~exp
+         time (- (get-time) start)]
+     {'RESULT result 'TIME (str time "ms")}))
+
+(defn meta [o] (get o 'META))
+
+(defn source [f] (get (meta f) 'source))
+
+(defn doc [f] (get (meta f) 'doc))
+
+; MAPS
+
+(defn keys [o] (.keys js/Object o))
+
+(defn clone-object [o]
+  (if (js/isList o)
+    (map clone-object o)
+    (if (js/isObject o)
+      (reduce (% m k . (assoc m k (clone-object (get o k)))) {} (keys o))
+      o)))
+
+(defn set [m k v]
+  (assoc (clone-object m) k v))
+
+(defn remove [m k]
+  (dissoc (clone-object m) k))
 
 ; ALIASES
 

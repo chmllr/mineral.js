@@ -11,8 +11,7 @@
   (.pointer js/localStorage n))
 
 (defn get-pointer []
-  ; TODO: js string to int needed!
-  (.eval js/window (.pointer js/localStorage)))
+  (| 0 (.pointer js/localStorage)))
 
 (defmacro move-pointer [op]
   `(let [p (get-pointer)

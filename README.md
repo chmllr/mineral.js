@@ -23,7 +23,6 @@ Mineral specific primitives:
  - `assoc` (adds a key-value pair to the map)
  - `dissoc` (removes a key-value pair from the map)
  - `get` (gets the element for the provided key)
- - `keys` (returns all keys of the map)
 
 ## Syntactic Sugar
 

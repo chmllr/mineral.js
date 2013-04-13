@@ -6,6 +6,10 @@ function isList(x) {
     return x instanceof Array;
 }
 
+function isObject(x) {
+    return typeof x == "object";
+}
+
 function isNumber(x) {
     return typeof x == "number";
 }
@@ -50,17 +54,15 @@ function cachedEval(object) {
     return result;
 }
 
-function cloneObject(oldObject) {
+function newEnv(oldObject) {
     var newObject = {};
     for(var key in oldObject) newObject[key] = oldObject[key];
     return newObject;
 }
 
-var atoms = { "quote" : new Atom("quote"), 
-            "backquote": new Atom("backquote"),
-            "unquote": new Atom("unquote"),
-            "jswindow": new Atom("js/window"),
-            "hashmap": new Atom("hashmap") };
+var atoms = { "quote" : new Atom("quote"), "backquote": new Atom("backquote"),
+            "unquote": new Atom("unquote"), "jswindow": new Atom("js/window"),
+            "hashmap": new Atom("hashmap"), "fn": new Atom("fn") };
 
 var sugarMap = { "'" : atoms.quote, "`": atoms.backquote, "~": atoms.unquote };
 
@@ -102,20 +104,36 @@ var mineral = {
         return evaluate(!isNIL(value) && value ? thenAction : elseAction, env);
     },
 
-    "fn": function(bindings, exp) {
-        var optionalArgsSep = bindings.indexOf("&"), optionalBinding;
-        if(optionalArgsSep >= 0 && bindings.length > optionalArgsSep+1) {
-            optionalBinding = bindings[optionalArgsSep+1];
-            bindings = bindings.slice(0,optionalArgsSep);
+    "fn": function() {
+        var variants = {}, bindings, optionalArgsSep, optionalBinding;
+        var arglists_exps = arguments.length == 1
+            ? arguments[0]
+            : [[arguments[0], arguments[1]]];
+        for(var i in arglists_exps) {
+            bindings = arglists_exps[i][0];
+            optionalArgsSep = bindings.indexOf("&");
+            if(optionalArgsSep >= 0 && bindings.length > optionalArgsSep+1) {
+                optionalBinding = bindings[optionalArgsSep+1];
+                bindings = bindings.slice(0,optionalArgsSep);
+            }
+            // TODO: deal with overriding
+            variants[optionalBinding ? "any" : bindings.length] = 
+                { "bindings": bindings,
+                  "optionalBinding": optionalBinding,
+                  "exp": arglists_exps[i][1]};
         }
         var lambda = function() {
-            var env = cloneObject(this.env);
+            var env = newEnv(this.env), n = arguments.length,
+                variant = variants[n in variants ? n : "any"];
+            if(!variant) 
+                throw "Wrong number of arguments: " + n + " instead of " + Object.keys(variants);
+            bindings = variant.bindings;
             for (var i in bindings) env[bindings[i].value] = arguments[i];
-            if(optionalArgsSep >= 0) {
+            if(variant.optionalBinding) {
                 var args = Array.prototype.slice.call(arguments);
-                env[optionalBinding.value] = args.slice(bindings.length);
+                env[variant.optionalBinding.value] = args.slice(bindings.length);
             }
-            return evaluate(exp, env);
+            return evaluate(variant.exp, env);
         };
         lambda["lambda"] = true;
         return lambda;
@@ -163,7 +181,7 @@ var mineral = {
         var newMap = {};
         if(arguments)
             for(var i = 0; i < arguments.length; i++)
-                newMap = mineral.assoc(newMap, arguments[i], arguments[++i]);
+                mineral.assoc(newMap, arguments[i], arguments[++i]);
         return newMap;
     },
 
@@ -174,20 +192,14 @@ var mineral = {
 
     "assoc": function(map, key, value) {
         key = isString(key) ? key : stringify(key);
-        map = cloneObject(map);
         map[key] = value;
         return map;
     },
 
     "dissoc": function(map, key) {
         key = isString(key) ? key : stringify(key);
-        map = cloneObject(map);
         delete map[key];
         return map;
-    },
-
-    "keys": function(map) {
-        return Object.keys(map);
     },
 
     "true": true,
@@ -196,11 +208,11 @@ var mineral = {
 
 function resolve(id, env) {
     if(id == undefined 
-        || isNIL(id)
         || isNumber(id)
         || isBoolean(id)
         || isString(id)
-        || isJSReference(id.value)) return id;
+        || isJSReference(id.value)
+        || isNIL(id)) return id;
     if(env && id.value in env) return env[id.value];
     if(id.value in mineral) return mineral[id.value];
     throw("The identifier '" + id.value + "' can't be resolved.");
@@ -242,56 +254,57 @@ function expand(code) {
     } else return code;
 }
 
-function isWhitespace(char) {
-    return [" ", ","].indexOf(char) >= 0;
-}
-
-function tokenize(code, memo, pos) {
-    if(code.length <= pos) return memo;
-    var current = code.charAt(pos), result = "", sugared = false, ops = [];
-    if (isWhitespace(current)) return tokenize(code, memo, pos+1);
-    while(Object.keys(sugarMap).indexOf(current) >= 0) {
-        ops.unshift(sugarMap[current]);
-        current = code.charAt(++pos);
-        sugared = true;
-    }
-    if([")", "]", "}"].indexOf(current) >= 0) throwSyntaxError(pos, code);
-    if(Object.keys(enclosureMap).indexOf(current) >= 0) {
-        var enclosures = 1, oldPos = pos, opener = current, closer = enclosureMap[current];
-        while(enclosures > 0) {
-            pos++;
-            if(enclosures < 0 || pos == code.length) throwSyntaxError(pos, code);
-            current = code.charAt(pos);
-            if(current == "\\") {
-                pos++;
-                continue;
-            }
-            else if(opener != closer && current == opener) enclosures++;
-            else if(current == closer) enclosures--;
-        }
-        result = opener != '"'
-            ? tokenize(code.substring(oldPos+1, pos), [], 0)
-            : eval('"' + code.substring(oldPos+1, pos) + '"');
-        if(opener == "{")
-            result = [atoms.hashmap].concat(result);
-    } else {
-        while(pos < code.length && !isWhitespace(code.charAt(pos))) result += code.charAt(pos++);
-        if(!isNaN(result)) result = result | 0;
-        if(result == "true" || result == "false") result = result == "true";
-        if(isString(result) && result != "&" && result != "#_") result = new Atom(result);
-    }
-    if(sugared)
-        for(var i in ops)
-            result = [ops[i], result];
-    if(memo[memo.length-1] == "#_") memo.pop(); else memo.push(result); 
-    return tokenize(code, memo, pos+1);
-}
-
-function throwSyntaxError(pos, code) {
-    throw("Syntax error at position " + pos + ": " + code);
-}
-
 function parse(string) {
+    function tokenize(code, memo, pos) {
+        if(code.length <= pos) return memo;
+        var current = code.charAt(pos), result = "", sugared = false, ops = [];
+        if (isWhitespace(current)) return tokenize(code, memo, pos+1);
+        while(Object.keys(sugarMap).indexOf(current) >= 0) {
+            ops.unshift(sugarMap[current]);
+            current = code.charAt(++pos);
+            sugared = true;
+        }
+        if([")", "]", "}"].indexOf(current) >= 0) throwSyntaxError(pos, code);
+        if(Object.keys(enclosureMap).indexOf(current) >= 0) {
+            var enclosures = 1, oldPos = pos, opener = current, closer = enclosureMap[current];
+            while(enclosures > 0) {
+                pos++;
+                if(enclosures < 0 || pos == code.length) throwSyntaxError(pos, code);
+                current = code.charAt(pos);
+                if(current == "\\") {
+                    pos++;
+                    continue;
+                }
+                else if(opener != closer && current == opener) enclosures++;
+                else if(current == closer) enclosures--;
+            }
+            result = opener != '"'
+                ? tokenize(code.substring(oldPos+1, pos), [], 0)
+                : eval('"' + code.substring(oldPos+1, pos) + '"');
+            if(opener == "{")
+                result = [atoms.hashmap].concat(result);
+        } else {
+            while(pos < code.length && !isWhitespace(code.charAt(pos))) result += code.charAt(pos++);
+            if(!isNaN(result)) result = result | 0;
+            if(result == "true" || result == "false") result = result == "true";
+            if(isString(result) && result != "&" && result != "#_") result = new Atom(result);
+        }
+        if(sugared)
+            for(var i in ops)
+                result = [ops[i], result];
+        if(memo[memo.length-1] == "#_") memo.pop(); else memo.push(result);
+        return tokenize(code, memo, pos+1);
+    }
+
+    function isWhitespace(char) {
+        return [" ", ","].indexOf(char) >= 0;
+    }
+
+
+    function throwSyntaxError(pos, code) {
+        throw("Syntax error at position " + pos + ": " + code);
+    }
+
     return tokenize(string, [], 0)[0];
 }
 
@@ -299,9 +312,9 @@ function stringify(code) {
     if(isAtom(code)) return code.value;
     if(isString(code)) return JSON.stringify(code);
     if(!isList(code))
-        if(typeof code == "object") {
+        if(isObject(code)) {
             var output = "";        
-            for(var key in code) output += stringify(key) + ": " + stringify(code[key]) + ", ";
+            for(var key in code) output += stringify(key) + " " + stringify(code[key]) + ", ";
             return "{" + output.substring(0, output.length-2) + "}";
         }
         else return code + '';
@@ -353,4 +366,3 @@ function loadFiles() {
     httpRequest.onreadystatechange = processText;
     loadFile();
 }
-
