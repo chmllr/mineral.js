@@ -240,56 +240,57 @@ function expand(code) {
     } else return code;
 }
 
-function isWhitespace(char) {
-    return [" ", ","].indexOf(char) >= 0;
-}
-
-function tokenize(code, memo, pos) {
-    if(code.length <= pos) return memo;
-    var current = code.charAt(pos), result = "", sugared = false, ops = [];
-    if (isWhitespace(current)) return tokenize(code, memo, pos+1);
-    while(Object.keys(sugarMap).indexOf(current) >= 0) {
-        ops.unshift(sugarMap[current]);
-        current = code.charAt(++pos);
-        sugared = true;
-    }
-    if([")", "]", "}"].indexOf(current) >= 0) throwSyntaxError(pos, code);
-    if(Object.keys(enclosureMap).indexOf(current) >= 0) {
-        var enclosures = 1, oldPos = pos, opener = current, closer = enclosureMap[current];
-        while(enclosures > 0) {
-            pos++;
-            if(enclosures < 0 || pos == code.length) throwSyntaxError(pos, code);
-            current = code.charAt(pos);
-            if(current == "\\") {
-                pos++;
-                continue;
-            }
-            else if(opener != closer && current == opener) enclosures++;
-            else if(current == closer) enclosures--;
-        }
-        result = opener != '"'
-            ? tokenize(code.substring(oldPos+1, pos), [], 0)
-            : eval('"' + code.substring(oldPos+1, pos) + '"');
-        if(opener == "{")
-            result = [atoms.hashmap].concat(result);
-    } else {
-        while(pos < code.length && !isWhitespace(code.charAt(pos))) result += code.charAt(pos++);
-        if(!isNaN(result)) result = result | 0;
-        if(result == "true" || result == "false") result = result == "true";
-        if(isString(result) && result != "&" && result != "#_") result = new Atom(result);
-    }
-    if(sugared)
-        for(var i in ops)
-            result = [ops[i], result];
-    if(memo[memo.length-1] == "#_") memo.pop(); else memo.push(result); 
-    return tokenize(code, memo, pos+1);
-}
-
-function throwSyntaxError(pos, code) {
-    throw("Syntax error at position " + pos + ": " + code);
-}
-
 function parse(string) {
+    function tokenize(code, memo, pos) {
+        if(code.length <= pos) return memo;
+        var current = code.charAt(pos), result = "", sugared = false, ops = [];
+        if (isWhitespace(current)) return tokenize(code, memo, pos+1);
+        while(Object.keys(sugarMap).indexOf(current) >= 0) {
+            ops.unshift(sugarMap[current]);
+            current = code.charAt(++pos);
+            sugared = true;
+        }
+        if([")", "]", "}"].indexOf(current) >= 0) throwSyntaxError(pos, code);
+        if(Object.keys(enclosureMap).indexOf(current) >= 0) {
+            var enclosures = 1, oldPos = pos, opener = current, closer = enclosureMap[current];
+            while(enclosures > 0) {
+                pos++;
+                if(enclosures < 0 || pos == code.length) throwSyntaxError(pos, code);
+                current = code.charAt(pos);
+                if(current == "\\") {
+                    pos++;
+                    continue;
+                }
+                else if(opener != closer && current == opener) enclosures++;
+                else if(current == closer) enclosures--;
+            }
+            result = opener != '"'
+                ? tokenize(code.substring(oldPos+1, pos), [], 0)
+                : eval('"' + code.substring(oldPos+1, pos) + '"');
+            if(opener == "{")
+                result = [atoms.hashmap].concat(result);
+        } else {
+            while(pos < code.length && !isWhitespace(code.charAt(pos))) result += code.charAt(pos++);
+            if(!isNaN(result)) result = result | 0;
+            if(result == "true" || result == "false") result = result == "true";
+            if(isString(result) && result != "&" && result != "#_") result = new Atom(result);
+        }
+        if(sugared)
+            for(var i in ops)
+                result = [ops[i], result];
+        if(memo[memo.length-1] == "#_") memo.pop(); else memo.push(result); 
+        return tokenize(code, memo, pos+1);
+    }
+
+    function isWhitespace(char) {
+        return [" ", ","].indexOf(char) >= 0;
+    }
+
+
+    function throwSyntaxError(pos, code) {
+        throw("Syntax error at position " + pos + ": " + code);
+    }
+
     return tokenize(string, [], 0)[0];
 }
 
@@ -351,4 +352,3 @@ function loadFiles() {
     httpRequest.onreadystatechange = processText;
     loadFile();
 }
-
