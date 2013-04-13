@@ -109,7 +109,7 @@
 (defn substr [string start end]
   (.slice string start end))
 
-; ARITHMETIC
+; ARITHMETIC & BIT OPERATIONS
 
 (map (% x . (js/interpret
               (js/stringify 
@@ -200,6 +200,22 @@
          result ~exp
          time (- (get-time) start)]
      {'RESULT result 'TIME (str time "ms")}))
+
+
+; MAPS
+
+(defn clone-object [o]
+  (if (js/isList o)
+    (map clone-object o)
+    (if (js/isObject o)
+      (reduce (% m k . (assoc m k (clone-object (get o k)))) {} (.keys js/Object o))
+      o)))
+
+(defn set [m k v]
+  (assoc (clone-object m) k v))
+
+(defn remove [m k]
+  (dissoc (clone-object m) k))
 
 ; ALIASES
 

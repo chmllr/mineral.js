@@ -6,6 +6,10 @@ function isList(x) {
     return x instanceof Array;
 }
 
+function isObject(x) {
+    return typeof x == "object";
+}
+
 function isNumber(x) {
     return typeof x == "number";
 }
@@ -50,7 +54,7 @@ function cachedEval(object) {
     return result;
 }
 
-function cloneObject(oldObject) {
+function newEnv(oldObject) {
     var newObject = {};
     for(var key in oldObject) newObject[key] = oldObject[key];
     return newObject;
@@ -109,7 +113,7 @@ var mineral = {
             bindings = bindings.slice(0,optionalArgsSep);
         }
         var lambda = function() {
-            var env = cloneObject(this.env);
+            var env = newEnv(this.env);
             for (var i in bindings) env[bindings[i].value] = arguments[i];
             if(optionalArgsSep >= 0) {
                 var args = Array.prototype.slice.call(arguments);
@@ -174,14 +178,12 @@ var mineral = {
 
     "assoc": function(map, key, value) {
         key = isString(key) ? key : stringify(key);
-        map = cloneObject(map);
         map[key] = value;
         return map;
     },
 
     "dissoc": function(map, key) {
         key = isString(key) ? key : stringify(key);
-        map = cloneObject(map);
         delete map[key];
         return map;
     },
@@ -299,9 +301,9 @@ function stringify(code) {
     if(isAtom(code)) return code.value;
     if(isString(code)) return JSON.stringify(code);
     if(!isList(code))
-        if(typeof code == "object") {
+        if(isObject(code)) {
             var output = "";        
-            for(var key in code) output += stringify(key) + ": " + stringify(code[key]) + ", ";
+            for(var key in code) output += stringify(key) + " " + stringify(code[key]) + ", ";
             return "{" + output.substring(0, output.length-2) + "}";
         }
         else return code + '';
