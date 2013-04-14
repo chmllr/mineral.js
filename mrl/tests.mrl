@@ -141,6 +141,8 @@
     127 (str (source do)) "\"(defn do (\\\"&\\\" statements) (last statements))\""
     128 ((fn ([x] (cons x ())) ([a b] (+ a b))) 6) (6)
     129 ((fn ([x] (cons x ())) ([a b] (+ a b))) 6 5) 11
+    130 `(4 ~(cons 'a '(b c))) (4 (a b c))
+    131 `(4 @(cons 'a '(b c))) (4 a b c)
 
 ))
 
