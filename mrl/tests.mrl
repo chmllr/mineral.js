@@ -144,6 +144,7 @@
     130 `(4 ~(cons 'a '(b c))) (4 (a b c))
     131 `(4 @(cons 'a '(b c))) (4 a b c)
     132 (drop 1 (list (defn f ([x] (cons x ())) ([a b] (+ a b))) (f 5) (f 5 6))) ((5) 11)
+    133 (doc do) "\"Executes given statements and returns the value of the last one\""
 
 ))
 
