@@ -30,11 +30,11 @@
 
 (def defn
   (macro 
-    [name args body]
+    [name & variations]
     `((% y x . x)
-      (def ~name (fn ~args ~body))
+      (def ~name (fn @variations))
       (assoc ~name 'META {'doc ""
-                          'source (list 'defn '~name '~args '~body)}))))
+                          'source '(defn ~name @variations)}))))
 
 (defmacro let [args exp]
   (reduce-right
@@ -113,9 +113,7 @@
 
 ; ARITHMETIC & BIT OPERATIONS
 
-(map (% x . (js/interpret
-              (js/stringify 
-                `(defn ~x (a b) (infixcall '~x a b)))))
+(map (% x . (js/interpret (str `(defn ~x (a b) (infixcall '~x a b)))))
      '(+ - * / < > >= <= ^ & | %))
 
 ; LISTS BONUS
@@ -136,13 +134,12 @@
       ((% x . coll) (.pop coll)))
       (.slice coll 0)))
 
-(defn range-helper [acc n]
-  (do (.unshift acc n)
-    (if (eq n 0) acc
-      (range-helper acc (- n 1)))))
-
-(defn range [n]
-  (range-helper () n))
+(defn range
+  ([n] (range () n))
+  ([acc n]
+    (do (.unshift acc n)
+      (if (eq n 0) acc
+        (range acc (- n 1))))))
 
 (defn split-at [coll n]
   (list (.slice coll 0 n) (.slice coll n)))

@@ -143,6 +143,7 @@
     129 ((fn ([x] (cons x ())) ([a b] (+ a b))) 6 5) 11
     130 `(4 ~(cons 'a '(b c))) (4 (a b c))
     131 `(4 @(cons 'a '(b c))) (4 a b c)
+    132 (drop 1 (list (defn f ([x] (cons x ())) ([a b] (+ a b))) (f 5) (f 5 6))) ((5) 11)
 
 ))
 
