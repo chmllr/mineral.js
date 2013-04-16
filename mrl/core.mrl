@@ -22,24 +22,34 @@
  
 ; MACROS
 
+(def macro-template
+  (fn [name docstring args body]
+    `((% y x . x)
+        (def ~name (macro ~args ~body))
+        (assoc ~name 'META {'doc ~docstring
+                            'source '(defmacro ~name ~args ~body)}))))
+
 (def defmacro
   (macro
-    [name args body]
-    `(def ~name
-       (macro ~args ~body))))
+    ([name args body] (macro-template name () args body))
+    ([name docstring args body] (macro-template name docstring args body))))
 
 (def defn
   (macro 
     [name & variations]
-    ((% variations docstring .
+    (apply
+      (% variations docstring .
       `((% y x . x)
-        (def ~name (fn @variations))
-        (assoc ~name 'META {'doc ~docstring
-                            'source '(defn ~name @variations)})))
-      (if (js/isString (head variations)) (tail variations) variations)
-      (if (js/isString (head variations)) (head variations) ""))))
+          (def ~name (fn @variations))
+          (assoc ~name 'META {'doc ~docstring
+                              'source '(defn ~name @variations)})))
+        (if (js/isString (head variations))
+          `(~(tail variations) ~(head variations))
+          `(~variations ())))))
 
-(defmacro let [args exp]
+(defmacro let
+  "Classic let macro"
+  [args exp]
   (reduce-right
     (% pair memo .
        (list 
@@ -77,13 +87,17 @@
 
 ; LOGIC
 
-(defmacro or [& vals]
+(defmacro or
+  "Returns true if any of the given values is not false"
+  [& vals]
   `(reduce (% m e . 
               (if m true e))
            false
            ~(cons 'list vals)))
 
-(defmacro and [& vals]
+(defmacro and
+  "Returns true if all fo the given values are not false"
+  [& vals]
   `(reduce (% m e .
               (if e m false))
            true
@@ -240,7 +254,9 @@
 
 ; VARIOUS
 
-(defmacro new [object & args]
+(defmacro new
+  "Returns a new JS object (arguments are not supported yet)"
+  [object & args]
     `(.eval js/window 
             (str "new " ~(list 'quote object) "()")))
 
@@ -257,7 +273,9 @@
   [& statements]
   (last statements))
 
-(defmacro timer [exp]
+(defmacro timer
+  "Executes the given expression and returns the execution time in milliseconds"
+  [exp]
   `(let [get-time (% . (.getTime (new Date)))
          start (get-time)
          result ~exp
