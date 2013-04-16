@@ -22,21 +22,34 @@
  
 ; MACROS
 
+(def macro-template
+  (fn [name docstring args body]
+    `((% y x . x)
+        (def ~name (macro ~args ~body))
+        (assoc ~name 'META {'doc ~docstring
+                            'source '(defmacro ~name ~args ~body)}))))
+
 (def defmacro
   (macro
-    [name args body]
-    `(def ~name
-       (macro ~args ~body))))
+    ([name args body] (macro-template name () args body))
+    ([name docstring args body] (macro-template name docstring args body))))
 
 (def defn
   (macro 
-    [name args body]
-    `((% y x . x)
-      (def ~name (fn ~args ~body))
-      (assoc ~name 'META {'doc ""
-                          'source (list 'defn '~name '~args '~body)}))))
+    [name & variations]
+    (apply
+      (% variations docstring .
+      `((% y x . x)
+          (def ~name (fn @variations))
+          (assoc ~name 'META {'doc ~docstring
+                              'source '(defn ~name @variations)})))
+        (if (js/isString (head variations))
+          `(~(tail variations) ~(head variations))
+          `(~variations ())))))
 
-(defmacro let [args exp]
+(defmacro let
+  "Classic let macro"
+  [args exp]
   (reduce-right
     (% pair memo .
        (list 
@@ -49,17 +62,23 @@
 
 ; LISTS CORE
 
-(defn reduce [f memo coll]
+(defn reduce
+  "classic reduce / foldl"
+  [f memo coll]
   (if coll
     (reduce f
             (f memo (head coll))
             (tail coll))
     memo))
 
-(defn reduce-right [f memo coll]
+(defn reduce-right 
+  "classic foldr"
+  [f memo coll]
   (if coll (f (head coll) (reduce-right f memo (tail coll))) memo))
 
-(defn map [f coll]
+(defn map
+  "Classic map"
+  [f coll]
   (if coll
     (cons
       (f (head coll))
@@ -68,26 +87,36 @@
 
 ; LOGIC
 
-(defmacro or [& vals]
+(defmacro or
+  "Returns true if any of the given values is not false"
+  [& vals]
   `(reduce (% m e . 
               (if m true e))
            false
            ~(cons 'list vals)))
 
-(defmacro and [& vals]
+(defmacro and
+  "Returns true if all fo the given values are not false"
+  [& vals]
   `(reduce (% m e .
               (if e m false))
            true
            ~(cons 'list vals)))
 
-(defn not [value] (if value false true))
+(defn not
+  "Returns false if the given value is not 'true' and false otherwise"
+  [value] (if value false true))
 
-(defn eq-object [a b]
+(defn eq-object
+  "Compares atoms and lists"
+  [a b]
   (if (atom a) (eq a b)
     (and (eq (head a) (head b))
          (eq-object (tail a) (tail b)))))
 
-(defn = [& values]
+(defn =
+  "Compares any number of given values"
+  [& values]
   (second
     (reduce (% m e .
                (list e 
@@ -96,62 +125,88 @@
 
 ; STRINGS
 
-(defn str-primitive [arg]
+(defn str-primitive
+  "Converts anything to string"
+  [arg]
   (if (js/isString arg) arg (js/stringify arg)))
 
-(defn str [& strings]
+(defn str
+  "Concatenates given values to a string"
+  [& strings]
   (.join (map str-primitive strings) ""))
 
-(defn console-log [string]
+(defn console-log
+  "Prints to the console"
+  [string]
   (.log js/console string))
 
-(defn console-error [string]
+(defn console-error 
+  "Prints an error to the console"
+  [string]
   (.error js/console string))
 
-(defn substr [string start end]
+(defn substr
+  "Returns a substring of the given string"
+  [string start end]
   (.slice string start end))
 
 ; ARITHMETIC & BIT OPERATIONS
 
-(map (% x . (js/interpret
-              (js/stringify 
-                `(defn ~x (a b) (infixcall '~x a b)))))
+(map (% x . (js/interpret (str `(defn ~x (a b) (infixcall '~x a b)))))
      '(+ - * / < > >= <= ^ & | %))
 
 ; LISTS BONUS
 
-(defn reverse [coll] (.reverse coll))
+(defn reverse
+  "Reverses list using the JS function .reverse()"
+  [coll] (.reverse coll))
 
-(defn sort [coll] (.sort coll))
+(defn sort 
+  "Sorts a list using the JS function .sort()"
+  [coll] (.sort coll))
 
-(defn concat [a b] (.concat a b))
+(defn concat
+  "Concatenates two arrays using JS function .concat()"
+  [a b] (.concat a b))
 
-(defn push [elem coll]
+(defn push
+  "Pushes the given element to the end of the given list non-destructevely"
+  [elem coll]
   ((% coll .
       ((% x . coll) (.push coll elem)))
       (.slice coll 0)))
 
-(defn pop [coll]
+(defn pop
+  "Removes the last element of the end of the given list non-destructevely"
+  [coll]
   ((% coll .
       ((% x . coll) (.pop coll)))
       (.slice coll 0)))
 
-(defn range-helper [acc n]
-  (do (.unshift acc n)
-    (if (eq n 0) acc
-      (range-helper acc (- n 1)))))
+(defn range
+  "Returns a list with all elements between 0 and the specified argument"
+  ([n] (range () n))
+  ([acc n]
+    (do (.unshift acc n)
+      (if (eq n 0) acc
+        (range acc (- n 1))))))
 
-(defn range [n]
-  (range-helper () n))
-
-(defn split-at [coll n]
+(defn split-at
+  "Splits the given list at the i'th position"
+  [coll n]
   (list (.slice coll 0 n) (.slice coll n)))
 
-(defn take [n coll] (.slice coll 0 n))
+(defn take
+  "Returns the first n elements of the specified collection"
+  [n coll] (.slice coll 0 n))
 
-(defn drop [n coll] (.slice coll n))
+(defn drop
+  "Returns a collection without the first n elements of the specified collection"
+  [n coll] (.slice coll n))
 
-(defn partition [n coll]
+(defn partition
+  "Divides the given list into groups with n elements and returns the groups as a list"
+  [n coll]
   (if coll
     ((% pair .
         (cons (head pair)
@@ -159,74 +214,114 @@
         (split-at coll n))
     ()))
 
-(defn second [coll] (nth coll 1))
+(defn second 
+  "Returns the second element of the specified list"
+  [coll] (nth coll 1))
 
-(defn third [coll] (nth coll 2))
+(defn third
+  "Returns the third element of the specified list"
+  [coll] (nth coll 2))
 
-(defn count [coll] (.length coll))
+(defn count
+  "Returns the length of the specified list"
+  [coll] (.length coll))
 
-(defn nth [coll n]
+(defn nth
+  "Returns n'th element of the specified list"
+  [coll n]
   (if (<= 0 n)
     (get coll n)
     (get coll (+ (count coll) n))))
 
-(defn filter [p? coll]
+(defn filter
+  "Classic filter function"
+  [p? coll]
   (if coll
     (let [e (head coll)
           r (filter p? (tail coll))]
       (if (p? e) (cons e r) r))
     ()))
 
-(defn index-of [coll elem]
+(defn index-of
+  "Returns the index of the given element in the given collection using JS function .indexOf()"
+  [coll elem]
   ; TODO: for non-primitive type use filter with '='
   (.indexOf coll elem))
 
-(defn last [coll] (nth coll -1))
+(defn last
+  "Returns the last element of the given list"
+  [coll] (nth coll -1))
 
 ; VARIOUS
 
-(defmacro new [object & args]
+(defmacro new
+  "Returns a new JS object (arguments are not supported yet)"
+  [object & args]
     `(.eval js/window 
             (str "new " ~(list 'quote object) "()")))
 
-(defn id [x] x)
+(defn id 
+  "Classic identity function"
+  [x] x)
 
-(defn empty? [coll] (eq coll ()))
+(defn empty?
+  "Returns true if the given list is empty and false otherwise"
+  [coll] (eq coll ()))
 
-(defn do [& statements]
+(defn do
+  "Executes given statements and returns the value of the last one"
+  [& statements]
   (last statements))
 
-(defmacro timer [exp]
+(defmacro timer
+  "Executes the given expression and returns the execution time in milliseconds"
+  [exp]
   `(let [get-time (% . (.getTime (new Date)))
          start (get-time)
          result ~exp
          time (- (get-time) start)]
      {'RESULT result 'TIME (str time "ms")}))
 
-(defn meta [o] (get o 'META))
+(defn meta
+  "Returns the meta information about a declared function"
+  [o] (get o 'META))
 
-(defn source [f] (get (meta f) 'source))
+(defn source
+  "Shows the source code of declared function"
+  [f] (get (meta f) 'source))
 
-(defn doc [f] (get (meta f) 'doc))
+(defn doc
+  "Shows the docstring of a declared function"
+  [f] (get (meta f) 'doc))
 
 ; MAPS
 
-(defn keys [o] (.keys js/Object o))
+(defn keys
+  "Returns all keys of the given hashmap/object"
+  [o] (.keys js/Object o))
 
-(defn clone-object [o]
+(defn clone-object 
+  "Returns a deep copy of the specified hashmap/object or list"
+  [o]
   (if (js/isList o)
     (map clone-object o)
     (if (js/isObject o)
       (reduce (% m k . (assoc m k (clone-object (get o k)))) {} (keys o))
       o)))
 
-(defn set [m k v]
+(defn set
+  "Adds the specified key-value pair to the given map non-destructevely"
+  [m k v]
   (assoc (clone-object m) k v))
 
-(defn remove [m k]
+(defn remove
+  "Removes the specified key from the given map non-destructevely"
+  [m k]
   (dissoc (clone-object m) k))
 
 ; ALIASES
 
-(defn ! [& strings]
+(defn !
+  "Alias for console-log"
+  [& strings]
   (console-log (apply str strings)))

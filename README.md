@@ -31,6 +31,7 @@ Mineral specific primitives:
  - list `['a 'b 'c]` is the same as `('a 'b 'c)`
  - comma is white space, i.e., this `'[1, 2, 3, 4]` is equivalent to this `'(1 2 3 4)`
  - maps are representad as `{'key1 "value1" 'key2 "value2"}` or `{"a" "b", "c" "d", "e" "f"}`
+ - unquote with `~`, unquote splicing with `@`
 
 ## Differences with Lisp From the Paper
 
@@ -41,7 +42,6 @@ Mineral specific primitives:
  - `cdr` is `tail`
  - `label` is `def`
  - `lambda` is `fn`
- - unquoting with `~`
 
 ## Interoperability with JS
 

@@ -62,9 +62,11 @@ function newEnv(oldObject) {
 
 var atoms = { "quote" : new Atom("quote"), "backquote": new Atom("backquote"),
             "unquote": new Atom("unquote"), "jswindow": new Atom("js/window"),
-            "hashmap": new Atom("hashmap"), "fn": new Atom("fn") };
+            "hashmap": new Atom("hashmap"), "fn": new Atom("fn"), 
+            "unquote_splicing": new Atom("unquote_splicing") };
 
-var sugarMap = { "'" : atoms.quote, "`": atoms.backquote, "~": atoms.unquote };
+var sugarMap = { "'" : atoms.quote, "`": atoms.backquote, 
+                 "~": atoms.unquote, "@": atoms.unquote_splicing };
 
 var enclosureMap = { '(' : ')', '"' : '"', "[": "]", "{": "}" };
 
@@ -106,8 +108,8 @@ var mineral = {
 
     "fn": function() {
         var variants = {}, bindings, optionalArgsSep, optionalBinding;
-        var arglists_exps = arguments.length == 1
-            ? arguments[0]
+        var arglists_exps = arguments.length > 2 || isList(arguments[0][0])
+            ? arguments
             : [[arguments[0], arguments[1]]];
         for(var i in arglists_exps) {
             bindings = arglists_exps[i][0];
@@ -247,7 +249,15 @@ function evaluate(value, env) {
 
 function expand(code) {
     if(isPrimitive(code)) return code;
-    for(var i in code) code[i] = expand(code[i]);
+    var expanded_code = [];
+    for(var i in code) {
+        var inline = !isPrimitive(code[i]) && code[i][0].value == atoms.unquote_splicing.value;
+        if(inline) code[i][0] = atoms.unquote;
+        var result = expand(code[i]);
+        if(inline) expanded_code = expanded_code.concat(result);
+        else expanded_code.push(result);
+    }
+    code = expanded_code;
     if(isPrimitive(code[0]) && code[0].value in mineral && mineral[code[0].value].macro) {
         var result = evaluate(code)
         return code[0].value == "backquote" ? evaluate(result) : result;
