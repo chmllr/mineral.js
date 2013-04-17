@@ -16,10 +16,7 @@
 (defmacro move-pointer [op]
   `(let [p (get-pointer)
          np (~op p 1)]
-     (do
-       (if (and (<= -1 np) (<= np (count (cmds-list))))
-         (set-pointer np))
-       np)))
+       (if (and (<= -1 np) (<= np (count (cmds-list)))) (set-pointer np))))
 
 (defn cmds-list []
   (tail (.split (get-cmds) "::")))
@@ -28,11 +25,11 @@
   (let [cmds (cmds-list)
         n (count cmds)
         last-cmd (nth cmds (- n 1))]
-    (if (not (eq cmd last-cmd))
-      (do
-        (set-pointer (+ n 1))
-        (.commands js/localStorage
-                   (str (get-cmds) "::" cmd))))))
+    (do
+      (move-pointer +)
+      (if (not (eq cmd last-cmd))
+          (.commands js/localStorage
+                     (str (get-cmds) "::" cmd))))))
 
 (set-pointer (count (cmds-list)))
 
