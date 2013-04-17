@@ -204,6 +204,16 @@ var mineral = {
         return map;
     },
 
+    "trycatch": function(code, catch_fn) {
+        try {
+            var env = this.env;
+            return evaluate(code, env);
+        } catch (error) {
+            catch_fn = evaluate(catch_fn, env);
+            return catch_fn.apply(catch_fn, [error]);
+        }
+    },
+
     "true": true,
     "false": false
 }
@@ -239,7 +249,7 @@ function evaluate(value, env) {
         func = new Atom(token);
     }
     var f = evaluate(func, env);
-    if(["quote", "if", "fn", "def"].indexOf(token) < 0 && !f.macro)
+    if(["quote", "if", "fn", "def", "trycatch"].indexOf(token) < 0 && !f.macro)
         for(var i in args) args[i] = evaluate(args[i], env);
     mineral.env = env;
     var result = mineral.apply(f, args, token);
