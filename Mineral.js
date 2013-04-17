@@ -61,9 +61,9 @@ function newEnv(oldObject) {
 }
 
 var atoms = { "quote" : new Atom("quote"), "backquote": new Atom("backquote"),
-            "unquote": new Atom("unquote"), "jswindow": new Atom("js/window"),
+            "unquote": new Atom("unquote"), "js/window": new Atom("js/window"),
             "hashmap": new Atom("hashmap"), "fn": new Atom("fn"), 
-            "unquote_splicing": new Atom("unquote_splicing") };
+            "unquote_splicing": new Atom("unquote_splicing"), "&": new Atom("&") };
 
 var sugarMap = { "'" : atoms.quote, "`": atoms.backquote, 
                  "~": atoms.unquote, "@": atoms.unquote_splicing };
@@ -113,7 +113,7 @@ var mineral = {
             : [[arguments[0], arguments[1]]];
         for(var i in arglists_exps) {
             bindings = arglists_exps[i][0];
-            optionalArgsSep = bindings.indexOf("&");
+            optionalArgsSep = bindings.indexOf(atoms["&"]);
             if(optionalArgsSep >= 0 && bindings.length > optionalArgsSep+1) {
                 optionalBinding = bindings[optionalArgsSep+1];
                 bindings = bindings.slice(0,optionalArgsSep);
@@ -231,7 +231,7 @@ function evaluate(value, env) {
     }
     var localMethodCall = isString(token) && token.charAt(0) == ".";
     if(localMethodCall || isJSReference(token)) {
-        var object = localMethodCall ? evaluate(value[1], env) : atoms.jswindow;
+        var object = localMethodCall ? evaluate(value[1], env) : atoms["js/window"];
         object = isJSReference(object.value) ? new Atom(object.value.slice(3)) : object;
         args = [[atoms.quote, object], [atoms.quote, localMethodCall ? token.slice(1) : token.slice(3)]];
         args = args.concat(value.slice(localMethodCall ? 2 : 1));
@@ -297,7 +297,14 @@ function parse(string) {
             while(pos < code.length && !isWhitespace(code.charAt(pos))) result += code.charAt(pos++);
             if(!isNaN(result)) result = result | 0;
             if(result == "true" || result == "false") result = result == "true";
-            if(isString(result) && result != "&" && result != "#_") result = new Atom(result);
+            if(isString(result) && result != "#_") {
+                var atom = atoms[result];
+                if(atom) result = atom;
+                else {
+                    atoms[result] = new Atom(result);
+                    result = atoms[result];
+                }
+            }
         }
         if(sugared)
             for(var i in ops)
@@ -345,11 +352,7 @@ function normalize(string) {
 }
 
 function interpret(input) {
-    try {
-        return stringify(evaluate(expand(parse(normalize(input)))));
-    } catch(error) {
-        return error;
-    }
+    return stringify(evaluate(expand(parse(normalize(input)))));
 }
 
 function loadFiles() {

@@ -138,7 +138,7 @@
                     (get n 'b))) (4 undefined 3)
     125 (get (last (list (def m {'a 't}) (dissoc m 'a) m)) 'a) undefined
     126 (get (last (list (def m {'a 't}) (remove m 'a) m)) 'a) t
-    127 (str (source do)) "\"(defn do (\\\"&\\\" statements) (last statements))\""
+    127 (str (source do)) "\"(defn do (& statements) (last statements))\""
     128 ((fn ([x] (cons x ())) ([a b] (+ a b))) 6) (6)
     129 ((fn ([x] (cons x ())) ([a b] (+ a b))) 6 5) 11
     130 `(4 ~(cons 'a '(b c))) (4 (a b c))
