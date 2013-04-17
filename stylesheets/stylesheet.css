@@ -163,9 +163,11 @@ pre, code {
   color: #222;
   /*background-color: #fff;*/
 
-  font-family: "Courier New", Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
+  font-family: monospace;
+  /*
+  font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 600;*/
 
   border-radius: 2px;
   -moz-border-radius: 2px;
