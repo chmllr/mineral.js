@@ -339,7 +339,9 @@ function stringify(code) {
     if(isAtom(code)) return code.value;
     if(isString(code)) return JSON.stringify(code);
     if(!isList(code))
-        if(isObject(code)) {
+        if(typeof code == "function")
+            return code.META ? stringify(code.META.source) : code;
+        else if(isObject(code)) {
             var output = "";        
             for(var key in code) output += stringify(key) + " " + stringify(code[key]) + ", ";
             return "{" + output.substring(0, output.length-2) + "}";
