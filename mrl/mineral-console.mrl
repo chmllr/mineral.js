@@ -55,10 +55,12 @@
   (if (= (.keyCode js/event) 13)
     (let [content (.value mineral-console)
           position (+ 2 (.lastIndexOf content ">"))
-          last-cmd (.slice content position)]
+          last-cmd (.slice content position)
+          output (trycatch (js/interpret last-cmd)
+                           (% e . (let [m (.message e)] (if m m e))))]
       (do
         (append-cmd last-cmd)
-        (.value mineral-console (str content "\n" (js/interpret last-cmd) "\n> "))
+        (.value mineral-console (str content "\n" output "\n> "))
         (.scrollTop mineral-console (.scrollHeight mineral-console))
         (.preventDefault js/event)
         false))

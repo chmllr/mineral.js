@@ -227,7 +227,7 @@ function resolve(id, env) {
         || isNIL(id)) return id;
     if(env && id.value in env) return env[id.value];
     if(id.value in mineral) return mineral[id.value];
-    throw("The identifier '" + id.value + "' can't be resolved.");
+    throw("The identifier '" + id.value + "' is unknown.");
 }
 
 function evaluate(value, env) {
