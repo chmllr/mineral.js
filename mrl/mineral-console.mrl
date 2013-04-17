@@ -16,10 +16,7 @@
 (defmacro move-pointer [op]
   `(let [p (get-pointer)
          np (~op p 1)]
-     (do
-       (if (and (<= -1 np) (<= np (count (cmds-list))))
-         (set-pointer np))
-       np)))
+       (if (and (<= -1 np) (<= np (count (cmds-list)))) (set-pointer np))))
 
 (defn cmds-list []
   (tail (.split (get-cmds) "::")))
@@ -28,11 +25,11 @@
   (let [cmds (cmds-list)
         n (count cmds)
         last-cmd (nth cmds (- n 1))]
-    (if (not (eq cmd last-cmd))
-      (do
-        (set-pointer (+ n 1))
-        (.commands js/localStorage
-                   (str (get-cmds) "::" cmd))))))
+    (do
+      (move-pointer +)
+      (if (not (eq cmd last-cmd))
+          (.commands js/localStorage
+                     (str (get-cmds) "::" cmd))))))
 
 (set-pointer (count (cmds-list)))
 
@@ -58,10 +55,12 @@
   (if (= (.keyCode js/event) 13)
     (let [content (.value mineral-console)
           position (+ 2 (.lastIndexOf content ">"))
-          last-cmd (.slice content position)]
+          last-cmd (.slice content position)
+          output (trycatch (js/interpret last-cmd)
+                           (% e . (let [m (.message e)] (if m m e))))]
       (do
         (append-cmd last-cmd)
-        (.value mineral-console (str content "\n" (js/interpret last-cmd) "\n> "))
+        (.value mineral-console (str content "\n" output "\n> "))
         (.scrollTop mineral-console (.scrollHeight mineral-console))
         (.preventDefault js/event)
         false))

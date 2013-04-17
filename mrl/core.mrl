@@ -321,7 +321,12 @@
 
 ; ALIASES
 
-(defn !
+(defn _
   "Alias for console-log"
   [& strings]
   (console-log (apply str strings)))
+
+(defn !
+  "Alias for js/alert"
+  [& strings]
+  (js/alert (apply str strings)))
