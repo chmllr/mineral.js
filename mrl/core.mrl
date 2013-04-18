@@ -51,12 +51,7 @@
   "Classic let macro"
   [args exp]
   (reduce-right
-    (% pair memo .
-       (list 
-         (list 'fn 
-               (cons (head pair) ()) 
-               memo)
-         (second pair)))
+    (% pair memo . `((fn [~(head pair)] ~memo) ~(second pair)))
     exp
     (partition 2 args)))
 
@@ -74,7 +69,9 @@
 (defn reduce-right 
   "classic foldr"
   [f memo coll]
-  (if coll (f (head coll) (reduce-right f memo (tail coll))) memo))
+  (if coll
+    (f (head coll) (reduce-right f memo (tail coll)))
+    memo))
 
 (defn map
   "Classic map"
