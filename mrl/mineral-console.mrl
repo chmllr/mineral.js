@@ -28,10 +28,15 @@
     (do
       (move-pointer +)
       (if (not (eq cmd last-cmd))
-          (.commands js/localStorage
-                     (str (get-cmds) "::" cmd))))))
+          (do
+            (.commands js/localStorage
+                       (str (get-cmds) "::" cmd))
+          (reset-pointer))))))
 
-(set-pointer (count (cmds-list)))
+(defn reset-pointer []
+  (set-pointer (count (cmds-list))))
+
+(reset-pointer)
 
 (defn insert-last-command ()
   (let [code (.keyCode js/event)
