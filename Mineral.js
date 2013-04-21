@@ -70,6 +70,21 @@ var sugarMap = { "'" : atoms.quote, "`": atoms.backquote,
 
 var enclosureMap = { '(' : ')', '"' : '"', "[": "]", "{": "}" };
 
+var infixOperations = {
+    "+": function(a, b) { return a + b },
+    "-": function(a, b) { return a - b },
+    "*": function(a, b) { return a * b },
+    "/": function(a, b) { return a / b },
+    "<": function(a, b) { return a < b },
+    ">": function(a, b) { return a > b },
+    ">=": function(a, b) { return a >= b },
+    "<=": function(a, b) { return a <= b },
+    "%": function(a, b) { return a % b },
+    "^": function(a, b) { return a ^ b },
+    "&": function(a, b) { return a & b },
+    "|": function(a, b) { return a | b }
+}
+
 var mineral = {
 
     "quote": function(x) {
@@ -163,20 +178,7 @@ var mineral = {
     },
 
     "infixcall": function(op, a, b){
-        switch(op.value){
-            case '+': return a + b;
-            case '-': return a - b;
-            case '*': return a * b;
-            case '/': return a / b;
-            case '<': return a < b;
-            case '>': return a > b;
-            case '>=': return a >= b;
-            case '<=': return a <= b;
-            case '%': return a % b;
-            case '^': return a ^ b;
-            case '&': return a & b;
-            case '|': return a | b;
-        }
+        return infixOperations[op.value].call(null, a, b);
     },
 
     "hashmap": function() {
