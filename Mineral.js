@@ -216,6 +216,19 @@ var mineral = {
         }
     },
 
+    "iterate": function(init_vals, predicate, iterator) {
+        var single_val = !isList(init_vals),
+            vars = single_val ? [init_vals] : init_vals;
+        for(var i in vars) vars[i] = evaluate(vars[i], this.env);
+        predicate = evaluate(predicate, this.env);
+        iterator = evaluate(iterator, this.env);
+        while(predicate.apply(predicate, vars)) {
+            vars = iterator.apply(iterator, vars);
+            vars = isList(vars) ? vars : [vars];
+        }
+        return single_val ? vars[0] : vars;
+    },
+
     "true": true,
     "false": false
 }
@@ -251,7 +264,7 @@ function evaluate(value, env) {
         func = new Atom(token);
     }
     var f = evaluate(func, env);
-    if(["quote", "if", "fn", "def", "trycatch"].indexOf(token) < 0 && !f.macro)
+    if(["quote", "if", "fn", "def", "trycatch", "iterate"].indexOf(token) < 0 && !f.macro)
         for(var i in args) args[i] = evaluate(args[i], env);
     mineral.env = env;
     var result = mineral.apply(f, args, token);

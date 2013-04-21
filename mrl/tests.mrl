@@ -147,6 +147,9 @@
     133 (doc do) "\"Executes given statements and returns the value of the last one\""
     134 (trycatch (.lol js/undefined) (% e . (.message e))) "\"Cannot read property 'lol' of undefined\""
     135 (trycatch (asddd 'X) (% e . e)) "\"The identifier 'asddd' is unknown.\""
+    136 (iterate 0 (% x . (< x 10)) (% x . (+ 1 x))) 10
+    136 (iterate [0 {}] (% x m . (< x 10)) (% x m . (list (+ 1 x) (assoc m x x))))
+        (10 {"0" 0, "1" 1, "2" 2, "3" 3, "4" 4, "5" 5, "6" 6, "7" 7, "8" 8, "9" 9})
 
 ))
 
