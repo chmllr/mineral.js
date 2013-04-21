@@ -212,19 +212,18 @@ var mineral = {
             return evaluate(code, env);
         } catch (error) {
             catch_fn = evaluate(catch_fn, env);
-            return catch_fn.apply(catch_fn, [error]);
+            return catch_fn.apply(this, [error]);
         }
     },
 
     "iterate": function(init_vals, predicate, iterator) {
         var single_val = !isList(init_vals),
             vars = single_val ? [init_vals] : init_vals;
-        for(var i in vars) vars[i] = evaluate(vars[i], this.env);
-        predicate = evaluate(predicate, this.env);
-        iterator = evaluate(iterator, this.env);
-        while(predicate.apply(predicate, vars)) {
-            vars = iterator.apply(iterator, vars);
+        var result = predicate.apply(this, vars);
+        while(!isNIL(result) && result) {
+            vars = iterator.apply(this, vars);
             vars = isList(vars) ? vars : [vars];
+            result = predicate.apply(this, vars);
         }
         return single_val ? vars[0] : vars;
     },
@@ -264,7 +263,7 @@ function evaluate(value, env) {
         func = new Atom(token);
     }
     var f = evaluate(func, env);
-    if(["quote", "if", "fn", "def", "trycatch", "iterate"].indexOf(token) < 0 && !f.macro)
+    if(["quote", "if", "fn", "def", "trycatch"].indexOf(token) < 0 && !f.macro)
         for(var i in args) args[i] = evaluate(args[i], env);
     mineral.env = env;
     var result = mineral.apply(f, args, token);
