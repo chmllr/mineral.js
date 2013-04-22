@@ -26,6 +26,7 @@ Mineral specific primitives:
  - `dissoc` (removes a key-value pair from the map)
  - `get` (gets the element for the provided key)
  - `trycatch` (wraps the JS' try-catch)
+ - `iterate` (since JavaScript lacks tail-call optimization)
 
 ## Syntactic Sugar
 
@@ -72,4 +73,4 @@ Creation of objects is straighforward:
 Mineral code can be written in `*.mrl` files which will be then loaded using `loadFiles()`.
 Example:
 
-    <body onload="loadFiles('mrl/mineral.mrl', 'mrl/tests.mrl')">
+    <body onload="loadFiles('mrl/core.mrl', 'mrl/tests.mrl')">

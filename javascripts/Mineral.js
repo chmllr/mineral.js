@@ -70,6 +70,21 @@ var sugarMap = { "'" : atoms.quote, "`": atoms.backquote,
 
 var enclosureMap = { '(' : ')', '"' : '"', "[": "]", "{": "}" };
 
+var infixOperations = {
+    "+": function(a, b) { return a + b },
+    "-": function(a, b) { return a - b },
+    "*": function(a, b) { return a * b },
+    "/": function(a, b) { return a / b },
+    "<": function(a, b) { return a < b },
+    ">": function(a, b) { return a > b },
+    ">=": function(a, b) { return a >= b },
+    "<=": function(a, b) { return a <= b },
+    "%": function(a, b) { return a % b },
+    "^": function(a, b) { return a ^ b },
+    "&": function(a, b) { return a & b },
+    "|": function(a, b) { return a | b }
+}
+
 var mineral = {
 
     "quote": function(x) {
@@ -130,10 +145,12 @@ var mineral = {
             if(!variant) 
                 throw "Wrong number of arguments: " + n + " instead of " + Object.keys(variants);
             bindings = variant.bindings;
-            for (var i in bindings) env[bindings[i].value] = arguments[i];
+            for (var i = 0; i < bindings.length; i++) env[bindings[i].value] = arguments[i];
             if(variant.optionalBinding) {
-                var args = Array.prototype.slice.call(arguments);
-                env[variant.optionalBinding.value] = args.slice(bindings.length);
+                var args = [];
+                for (var i = bindings.length; i < arguments.length; i++)
+                    args.push(arguments[i]);
+                env[variant.optionalBinding.value] = args;
             }
             return evaluate(variant.exp, env);
         };
@@ -163,20 +180,7 @@ var mineral = {
     },
 
     "infixcall": function(op, a, b){
-        switch(op.value){
-            case '+': return a + b;
-            case '-': return a - b;
-            case '*': return a * b;
-            case '/': return a / b;
-            case '<': return a < b;
-            case '>': return a > b;
-            case '>=': return a >= b;
-            case '<=': return a <= b;
-            case '%': return a % b;
-            case '^': return a ^ b;
-            case '&': return a & b;
-            case '|': return a | b;
-        }
+        return infixOperations[op.value].call(null, a, b);
     },
 
     "hashmap": function() {
@@ -210,8 +214,17 @@ var mineral = {
             return evaluate(code, env);
         } catch (error) {
             catch_fn = evaluate(catch_fn, env);
-            return catch_fn.apply(catch_fn, [error]);
+            return catch_fn.apply(this, [error]);
         }
+    },
+
+    "iterate": function(values, predicate, iterator) {
+        var result = predicate.apply(this, values);
+        while(!isNIL(result) && result) {
+            values = iterator.apply(this, values);
+            result = predicate.apply(this, values);
+        }
+        return values;
     },
 
     "true": true,
@@ -239,7 +252,7 @@ function evaluate(value, env) {
         token = "fn"
         func = new Atom(token);
     }
-    var localMethodCall = isString(token) && token.charAt(0) == ".";
+    var localMethodCall = token && token.charAt(0) == ".";
     if(localMethodCall || isJSReference(token)) {
         var object = localMethodCall ? evaluate(value[1], env) : atoms["js/window"];
         object = isJSReference(object.value) ? new Atom(object.value.slice(3)) : object;
@@ -249,8 +262,9 @@ function evaluate(value, env) {
         func = new Atom(token);
     }
     var f = evaluate(func, env);
-    if(["quote", "if", "fn", "def", "trycatch"].indexOf(token) < 0 && !f.macro)
-        for(var i in args) args[i] = evaluate(args[i], env);
+    if(token != "quote" && token != "if" && token != "fn" && 
+        token != "def" && token != "trycatch" && !f.macro)
+        for(var i = 0; i < args.length; i++) args[i] = evaluate(args[i], env);
     mineral.env = env;
     var result = mineral.apply(f, args, token);
     if(macro) result["macro"] = macro;

@@ -51,12 +51,7 @@
   "Classic let macro"
   [args exp]
   (reduce-right
-    (% pair memo .
-       (list 
-         (list 'fn 
-               (cons (head pair) ()) 
-               memo)
-         (second pair)))
+    (% pair memo . `((fn [~(head pair)] ~memo) ~(second pair)))
     exp
     (partition 2 args)))
 
@@ -65,16 +60,18 @@
 (defn reduce
   "classic reduce / foldl"
   [f memo coll]
-  (if coll
-    (reduce f
-            (f memo (head coll))
-            (tail coll))
-    memo))
+  (head
+    (iterate
+      [list memo coll]
+      (% m c . c)
+      (% m c . (list (f m (head c)) (tail c))))))
 
 (defn reduce-right 
   "classic foldr"
   [f memo coll]
-  (if coll (f (head coll) (reduce-right f memo (tail coll))) memo))
+  (if coll
+    (f (head coll) (reduce-right f memo (tail coll)))
+    memo))
 
 (defn map
   "Classic map"
@@ -152,7 +149,7 @@
 
 ; ARITHMETIC & BIT OPERATIONS
 
-(map (% x . (js/interpret (str `(defn ~x (a b) (infixcall '~x a b)))))
+(map (% x . (js/evaluate `(defn ~x (a b) (infixcall '~x a b))))
      '(+ - * / < > >= <= ^ & | %))
 
 ; LISTS BONUS
@@ -185,11 +182,12 @@
 
 (defn range
   "Returns a list with all elements between 0 and the specified argument"
-  ([n] (range () n))
-  ([acc n]
-    (do (.unshift acc n)
-      (if (eq n 0) acc
-        (range acc (- n 1))))))
+  [n]
+  (head
+    (iterate
+      [list () n]
+      (% coll n . (<= 0 n))
+      (% coll n . (list (cons n coll) (- n 1))))))
 
 (defn split-at
   "Splits the given list at the i'th position"
