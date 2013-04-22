@@ -216,16 +216,13 @@ var mineral = {
         }
     },
 
-    "iterate": function(init_vals, predicate, iterator) {
-        var single_val = !isList(init_vals),
-            vars = single_val ? [init_vals] : init_vals;
-        var result = predicate.apply(this, vars);
+    "iterate": function(values, predicate, iterator) {
+        var result = predicate.apply(this, values);
         while(!isNIL(result) && result) {
-            vars = iterator.apply(this, vars);
-            vars = isList(vars) ? vars : [vars];
-            result = predicate.apply(this, vars);
+            values = iterator.apply(this, values);
+            result = predicate.apply(this, values);
         }
-        return single_val ? vars[0] : vars;
+        return values;
     },
 
     "true": true,
