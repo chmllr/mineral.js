@@ -149,7 +149,7 @@
 
 ; ARITHMETIC & BIT OPERATIONS
 
-(map (% x . (js/interpret (str `(defn ~x (a b) (infixcall '~x a b)))))
+(map (% x . (js/evaluate `(defn ~x (a b) (infixcall '~x a b))))
      '(+ - * / < > >= <= ^ & | %))
 
 ; LISTS BONUS
