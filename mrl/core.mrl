@@ -63,7 +63,7 @@
   (head
     (iterate
       [list memo coll]
-      (% m c . (not (eq c ())))
+      (% m c . c)
       (% m c . (list (f m (head c)) (tail c))))))
 
 (defn reduce-right 

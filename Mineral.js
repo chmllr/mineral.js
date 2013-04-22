@@ -145,10 +145,12 @@ var mineral = {
             if(!variant) 
                 throw "Wrong number of arguments: " + n + " instead of " + Object.keys(variants);
             bindings = variant.bindings;
-            for (var i in bindings) env[bindings[i].value] = arguments[i];
+            for (var i = 0; i < bindings.length; i++) env[bindings[i].value] = arguments[i];
             if(variant.optionalBinding) {
-                var args = Array.prototype.slice.call(arguments);
-                env[variant.optionalBinding.value] = args.slice(bindings.length);
+                var args = [];
+                for (var i = bindings.length; i < arguments.length; i++)
+                    args.push(arguments[i]);
+                env[variant.optionalBinding.value] = args;
             }
             return evaluate(variant.exp, env);
         };
@@ -250,7 +252,7 @@ function evaluate(value, env) {
         token = "fn"
         func = new Atom(token);
     }
-    var localMethodCall = isString(token) && token.charAt(0) == ".";
+    var localMethodCall = token && token.charAt(0) == ".";
     if(localMethodCall || isJSReference(token)) {
         var object = localMethodCall ? evaluate(value[1], env) : atoms["js/window"];
         object = isJSReference(object.value) ? new Atom(object.value.slice(3)) : object;
@@ -260,8 +262,9 @@ function evaluate(value, env) {
         func = new Atom(token);
     }
     var f = evaluate(func, env);
-    if(["quote", "if", "fn", "def", "trycatch"].indexOf(token) < 0 && !f.macro)
-        for(var i in args) args[i] = evaluate(args[i], env);
+    if(token != "quote" && token != "if" && token != "fn" && 
+        token != "def" && token != "trycatch" && !f.macro)
+        for(var i = 0; i < args.length; i++) args[i] = evaluate(args[i], env);
     mineral.env = env;
     var result = mineral.apply(f, args, token);
     if(macro) result["macro"] = macro;
