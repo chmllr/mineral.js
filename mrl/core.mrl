@@ -250,6 +250,15 @@
   "Returns the last element of the given list"
   [coll] (nth coll -1))
 
+(defn zip
+  "Zipps two lists"
+  [a b]
+  (head
+    (iterate
+      (list () a b)
+      (% r a b . a)
+      (% r a b . (list (cons (list (.pop a) (.pop b)) r) a b)))))
+
 ; VARIOUS
 
 (defmacro new

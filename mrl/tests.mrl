@@ -151,6 +151,7 @@
     137 (str (iterate [list 0 {}] (% x m . (< x 3)) (% x m . (list (+ 1 x) (assoc m x x)))))
         "\"(3 {\\\"0\\\" 0, \\\"1\\\" 1, \\\"2\\\" 2})\""
     138 (last (list (defn i (c n) (c n)) (defn r [f] (i (% x . (f x)) 5)) (r (% x . (* x x))))) 25
+    139 (zip '(1 2 3 4) '(A B C D)) ((1 A) (2 B) (3 C) (4 D))
 
 ))
 
