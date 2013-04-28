@@ -150,6 +150,8 @@
     136 (let [x 0] (do (while (< x 10) (assign x (+ 1 x))) x)) 10
     137 (let [x 0 m {}] (do (while (< x 3) (assoc m x x) (assign x (+ x 1))) m)) "{\"0\" 0, \"1\" 1, \"2\" 2}"
     138 (last (list (defn i (c n) (c n)) (defn r [f] (i (% x . (f x)) 5)) (r (% x . (* x x))))) 25
+    139 (exclude (% e . (= 0 (% e 2))) (range 6)) (1 3 5)
+    140 (exclude (% x . true) (range 3)) ()
 
 ))
 

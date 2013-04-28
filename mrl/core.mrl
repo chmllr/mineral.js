@@ -241,6 +241,11 @@
             (assign coll (tail coll)))]
         result))
 
+(defn exclude
+  "Inverted filter function"
+  [pred coll]
+  (filter (% x . (not (pred x))) coll))
+
 (defn index-of
   "Returns the index of the given element in the given collection using JS function .indexOf()"
   [coll elem]
