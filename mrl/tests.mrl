@@ -127,11 +127,11 @@
     118 (str (last (list (def m {'a 1, 'b 2, 'c 3}) (dissoc m 'b) m))) "\"{\\\"a\\\" 1, \\\"c\\\" 3}\""
     119 (get (last (list (def m {}) (set m 'TEST 'SUCC) m)) 'TEST) undefined
     120 (get (last (list (def m {}) (assoc m 'TEST 'SUCC) m)) 'TEST) SUCC
-    121 (clone-object 3) 3
-    122 (clone-object "asd") "\"asd\""
-    123 (clone-object '(1 2 3)) (1 2 3)
+    121 (clone 3) 3
+    122 (clone "asd") "\"asd\""
+    123 (clone '(1 2 3)) (1 2 3)
     124 (drop 3 (list (def m {'a 4, 'b 3})
-                    (def n (clone-object m))
+                    (def n (clone m))
                     (dissoc n 'a)
                     (get m 'a)
                     (get n 'a)
@@ -147,9 +147,8 @@
     133 (doc do) "\"Executes given statements and returns the value of the last one\""
     134 (trycatch (.lol js/undefined) (% e . (.message e))) "\"Cannot read property 'lol' of undefined\""
     135 (trycatch (asddd 'X) (% e . e)) "\"The identifier 'asddd' is unknown.\""
-    136 (iterate [list 0] (% x . (< x 10)) (% x . (list (+ 1 x)))) [10]
-    137 (str (iterate [list 0 {}] (% x m . (< x 3)) (% x m . (list (+ 1 x) (assoc m x x)))))
-        "\"(3 {\\\"0\\\" 0, \\\"1\\\" 1, \\\"2\\\" 2})\""
+    136 (let [x 0] (do (while (< x 10) (assign x (+ 1 x))) x)) 10
+    137 (let [x 0 m {}] (do (while (< x 3) (assoc m x x) (assign x (+ x 1))) m)) "{\"0\" 0, \"1\" 1, \"2\" 2}"
     138 (last (list (defn i (c n) (c n)) (defn r [f] (i (% x . (f x)) 5)) (r (% x . (* x x))))) 25
     139 (zip '(1 2 3 4) '(A B C D)) ((1 A) (2 B) (3 C) (4 D))
     140 (last (list (defn f [x] (do (assign x (+ x 1)) x)) (f 5))) 6

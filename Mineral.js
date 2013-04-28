@@ -31,7 +31,7 @@ function isAtom(x) {
 }
 
 function isPrimitive(x) {
-    return isNIL(x) || !isList(x);
+    return isNIL(x) || isAtom(x) || !isList(x) && !isObject(x);
 }
 
 function Atom (value) {
@@ -160,8 +160,9 @@ var mineral = {
 
     "def": function(atom, value, locally) {
         var env = this.env, name = atom.value, scope = locally ? env : mineral;
+        if(scope == undefined) throw("There is no local scope for '" + name + "'.");
         scope[name] = evaluate(value, env);
-        if(name.indexOf("-") >= 0) scope[name.replace(/-/g, "_")] = scope[name] 
+        if(!locally && name.indexOf("-") >= 0) scope[name.replace(/-/g, "_")] = scope[name] 
         return scope[name];
     },
 
@@ -218,13 +219,11 @@ var mineral = {
         }
     },
 
-    "iterate": function(values, predicate, iterator) {
-        var result = predicate.apply(this, values);
-        while(!isNIL(result) && result) {
-            values = iterator.apply(this, values);
-            result = predicate.apply(this, values);
-        }
-        return values;
+    "while": function() {
+        var env = this.env, args = Array.prototype.slice.call(arguments),
+            predicate = args[0], n = args.length, result;
+        while((result = evaluate(predicate, env)) && !isNIL(result))
+            for(var i = 1; i < n; i++) evaluate(args[i], env);
     },
 
     "true": true,
@@ -263,7 +262,7 @@ function evaluate(value, env) {
     }
     var f = evaluate(func, env);
     if(token != "quote" && token != "if" && token != "fn" && 
-        token != "def" && token != "trycatch" && !f.macro)
+        token != "def" && token != "trycatch" && token != "while" && !f.macro)
         for(var i = 0; i < args.length; i++) args[i] = evaluate(args[i], env);
     mineral.env = env;
     var result = mineral.apply(f, args, token);

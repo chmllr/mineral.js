@@ -66,11 +66,11 @@
 (defn reduce
   "classic reduce / foldl"
   [f memo coll]
-  (head
-    (iterate
-      [list memo coll]
-      (% m c . c)
-      (% m c . (list (f m (head c)) (tail c))))))
+  (do
+    (while coll
+      (assign memo (f memo (head coll)))
+      (assign coll (tail coll)))
+    memo))
 
 (defn reduce-right 
   "classic foldr"
@@ -188,12 +188,11 @@
 
 (defn range
   "Returns a list with all elements between 0 and the specified argument"
-  [n]
-  (head
-    (iterate
-      [list () n]
-      (% coll n . (<= 0 n))
-      (% coll n . (list (cons n coll) (- n 1))))))
+  ([n] (range () n))
+  ([acc n]
+    (do (.unshift acc n)
+      (if (eq n 0) acc
+        (range acc (- n 1))))))
 
 (defn split-at
   "Splits the given list at the i'th position"
@@ -259,11 +258,12 @@
 (defn zip
   "Zipps two lists"
   [a b]
-  (head
-    (iterate
-      (list () a b)
-      (% r a b . a)
-      (% r a b . (list (cons (list (.pop a) (.pop b)) r) a b)))))
+  (let [a (clone a)
+        b (clone b)
+        result []
+        _ (while a
+            (assign result (cons (list (.pop a) (.pop b)) result)))]
+        result))
 
 ; VARIOUS
 
@@ -313,24 +313,23 @@
   "Returns all keys of the given hashmap/object"
   [o] (.keys js/Object o))
 
-(defn clone-object 
+(defn clone 
   "Returns a deep copy of the specified hashmap/object or list"
   [o]
-  (if (js/isList o)
-    (map clone-object o)
-    (if (js/isObject o)
-      (reduce (% m k . (assoc m k (clone-object (get o k)))) {} (keys o))
-      o)))
+  (if (js/isPrimitive o) o
+    (if (js/isList o)
+      (map clone o)
+      (reduce (% m k . (assoc m k (clone (get o k)))) {} (keys o)))))
 
 (defn set
   "Adds the specified key-value pair to the given map non-destructevely"
   [m k v]
-  (assoc (clone-object m) k v))
+  (assoc (clone m) k v))
 
 (defn remove
   "Removes the specified key from the given map non-destructevely"
   [m k]
-  (dissoc (clone-object m) k))
+  (dissoc (clone m) k))
 
 ; ALIASES
 

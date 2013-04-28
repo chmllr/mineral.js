@@ -26,7 +26,7 @@ Mineral specific primitives:
  - `dissoc` (removes a key-value pair from the map)
  - `get` (gets the element for the provided key)
  - `trycatch` (wraps the JS' try-catch)
- - `iterate` (since JavaScript lacks tail-call optimization)
+ - `while` (since JavaScript lacks tail-call optimization)
 
 ## Syntactic Sugar
 
