@@ -55,6 +55,12 @@
     exp
     (partition 2 args)))
 
+
+(defmacro assign
+  "Assigns a value to an identifier in the local"
+  [id value]
+  `(def ~id ~value true))
+
 ; LISTS CORE
 
 (defn reduce

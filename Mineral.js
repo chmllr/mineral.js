@@ -158,11 +158,11 @@ var mineral = {
         return lambda;
     },
 
-    "def": function(atom, value) {
-        var env = this.env, name = atom.value;
-        mineral[name] = evaluate(value, env);
-        if(name.indexOf("-") >= 0) mineral[name.replace(/-/g, "_")] = mineral[name] 
-        return mineral[name];
+    "def": function(atom, value, locally) {
+        var env = this.env, name = atom.value, scope = locally ? env : mineral;
+        scope[name] = evaluate(value, env);
+        if(name.indexOf("-") >= 0) scope[name.replace(/-/g, "_")] = scope[name] 
+        return scope[name];
     },
 
     "apply": function(f, args, token){
@@ -197,7 +197,7 @@ var mineral = {
     },
 
     "assoc": function(map, key, value) {
-        key = isString(key) ? key : stringify(key);
+        key = isString(key) || isNumber(key) ? key : stringify(key);
         map[key] = value;
         return map;
     },
