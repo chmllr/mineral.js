@@ -91,8 +91,8 @@
     82  (reduce (% m e . (+ m e)) 0 '(1 2 3 4 5 6 7 8 9 10)) 55
     83  (reduce-right (% m e . (* m e)) 1 '(1 2 3 4 5)) 120
     84  (substr "hello world" 0 7) "\"hello w\""
-    85  (split-at '(1 2 3 4) 3) ((1 2 3) (4))
-    86  (split-at '(1 2 3 4) 8) ((1 2 3 4) ())
+    85  (zip '(1 2 3 4) '(A B C D)) ((1 A) (2 B) (3 C) (4 D))
+    86  (last (list (defn f [x] (do (assign x (+ x 1)) x)) (f 5))) 6
     87  (partition 2 '(1 2 3 4 5)) ((1 2) (3 4) (5))
     88  (push 'f '(4 5 f s)) (4 5 f s f)
     89  (range 10) (0 1 2 3 4 5 6 7 8 9 10)
@@ -150,8 +150,6 @@
     136 (let [x 0] (do (while (< x 10) (assign x (+ 1 x))) x)) 10
     137 (let [x 0 m {}] (do (while (< x 3) (assoc m x x) (assign x (+ x 1))) m)) "{\"0\" 0, \"1\" 1, \"2\" 2}"
     138 (last (list (defn i (c n) (c n)) (defn r [f] (i (% x . (f x)) 5)) (r (% x . (* x x))))) 25
-    139 (zip '(1 2 3 4) '(A B C D)) ((1 A) (2 B) (3 C) (4 D))
-    140 (last (list (defn f [x] (do (assign x (+ x 1)) x)) (f 5))) 6
 
 ))
 

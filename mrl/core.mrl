@@ -51,10 +51,9 @@
   "Classic let macro"
   [args exp]
   (reduce-right
-    (% pair memo . `((fn [~(head pair)] ~memo) ~(second pair)))
+    (% pair memo . `((fn [~(head pair)] ~memo) ~(get pair 1)))
     exp
     (partition 2 args)))
-
 
 (defmacro assign
   "Assigns a value to an identifier in the local"
@@ -79,14 +78,22 @@
     (f (head coll) (reduce-right f memo (tail coll)))
     memo))
 
+(defn partition
+  "Divides the given list into groups with n elements and returns the groups as a list"
+  [n coll]
+  (if coll
+    (cons (.slice coll 0 n)
+          (partition n (.slice coll n)))
+    ()))
+
 (defn map
   "Classic map"
   [f coll]
-  (if coll
-    (cons
-      (f (head coll))
-      (map f (tail coll)))
-    ()))
+  (let [result []
+        _ (while coll
+            (.push result (f (head coll)))
+            (assign coll (tail coll)))]
+        result))
 
 ; LOGIC
 
@@ -110,6 +117,7 @@
   "Returns false if the given value is not 'true' and false otherwise"
   [value] (if value false true))
 
+; TODO: rename + take care of stack overflow
 (defn eq-object
   "Compares atoms and lists"
   [a b]
@@ -190,14 +198,11 @@
   "Returns a list with all elements between 0 and the specified argument"
   ([n] (range () n))
   ([acc n]
-    (do (.unshift acc n)
-      (if (eq n 0) acc
-        (range acc (- n 1))))))
-
-(defn split-at
-  "Splits the given list at the i'th position"
-  [coll n]
-  (list (.slice coll 0 n) (.slice coll n)))
+    (do
+      (while (<= 0 n)
+        (.unshift acc n)
+        (assign n (- n 1)))
+      acc)))
 
 (defn take
   "Returns the first n elements of the specified collection"
@@ -206,16 +211,6 @@
 (defn drop
   "Returns a collection without the first n elements of the specified collection"
   [n coll] (.slice coll n))
-
-(defn partition
-  "Divides the given list into groups with n elements and returns the groups as a list"
-  [n coll]
-  (if coll
-    ((% pair .
-        (cons (head pair)
-              (partition n (second pair))))
-        (split-at coll n))
-    ()))
 
 (defn second 
   "Returns the second element of the specified list"
@@ -239,11 +234,12 @@
 (defn filter
   "Classic filter function"
   [p? coll]
-  (if coll
-    (let [e (head coll)
-          r (filter p? (tail coll))]
-      (if (p? e) (cons e r) r))
-    ()))
+  (let [result []
+        _ (while coll
+            (let [h (head coll)]
+              (if (p? h) (.push result h)))
+            (assign coll (tail coll)))]
+        result))
 
 (defn index-of
   "Returns the index of the given element in the given collection using JS function .indexOf()"
@@ -316,7 +312,7 @@
 (defn clone 
   "Returns a deep copy of the specified hashmap/object or list"
   [o]
-  (if (js/isPrimitive o) o
+  (if (atom o) o
     (if (js/isList o)
       (map clone o)
       (reduce (% m k . (assoc m k (clone (get o k)))) {} (keys o)))))
