@@ -117,7 +117,7 @@ var mineral = {
 
     "if": function(guard, thenAction, elseAction) {
         var env = this.env;
-        var value = evaluate(guard, env);
+        var value = evaluate(guard, this.env);
         return evaluate(!isNIL(value) && value ? thenAction : elseAction, env);
     },
 
@@ -159,14 +159,14 @@ var mineral = {
     },
 
     "def": function(atom, value, locally) {
-        var env = this.env, name = atom.value, scope = locally ? env : mineral;
+        var name = atom.value, scope = locally ? this.env : mineral;
         if(scope == undefined) throw("There is no local scope for '" + name + "'.");
-        scope[name] = evaluate(value, env);
+        scope[name] = evaluate(value, this.env);
         if(!locally && name.indexOf("-") >= 0) scope[name.replace(/-/g, "_")] = scope[name] 
         return scope[name];
     },
 
-    "apply": function(f, args, token){
+    "apply": function(f, args){
         return f.apply(this, args);
     },
 
@@ -211,10 +211,9 @@ var mineral = {
 
     "trycatch": function(code, catch_fn) {
         try {
-            var env = this.env;
-            return evaluate(code, env);
+            return evaluate(code, this.env);
         } catch (error) {
-            catch_fn = evaluate(catch_fn, env);
+            catch_fn = evaluate(catch_fn, this.env);
             return catch_fn.apply(this, [error]);
         }
     },
@@ -265,7 +264,7 @@ function evaluate(value, env) {
         token != "def" && token != "trycatch" && token != "while" && !f.macro)
         for(var i = 0; i < args.length; i++) args[i] = evaluate(args[i], env);
     mineral.env = env;
-    var result = mineral.apply(f, args, token);
+    var result = f.apply(mineral, args);
     if(macro) result["macro"] = macro;
     return result;
 }
