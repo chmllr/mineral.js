@@ -166,6 +166,9 @@
 (map (% x . (js/evaluate `(defn ~x (a b) (infixcall '~x a b))))
      '(+ - * / < > >= <= ^ & | %))
 
+(defn min [a b] (.min js/Math a b))
+(defn max [a b] (.max js/Math a b))
+
 ; LISTS BONUS
 
 (defn reverse
@@ -259,11 +262,11 @@
 (defn zip
   "Zipps two lists"
   [a b]
-  (let [a (clone a)
-        b (clone b)
+  (let [i (- (min (count a) (count b)) 1)
         result []
-        _ (while a
-            (assign result (cons (list (.pop a) (.pop b)) result)))]
+        _ (while (<= 0 i)
+            (assign result (cons (list (nth a i) (nth b i)) result))
+            (assign i (- i 1)))]
         result))
 
 ; VARIOUS
